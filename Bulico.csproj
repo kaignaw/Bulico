@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Bulico</RootNamespace>
+    <AssemblyName>Bulico</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2020\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2020\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\icon_gridwall_32.png" />
+    <EmbeddedResource Include="Resources\icon_gridwall_16.png" />
+    <EmbeddedResource Include="Resources\icon_beam_32.png" />
+    <EmbeddedResource Include="Resources\icon_beam_16.png" />
+    <EmbeddedResource Include="Resources\icon_floor_32.png" />
+    <EmbeddedResource Include="Resources\icon_floor_16.png" />
+    <EmbeddedResource Include="Resources\icon_filter_32.png" />
+    <EmbeddedResource Include="Resources\icon_filter_16.png" />
+    <EmbeddedResource Include="Resources\icon_doorwin_32.png" />
+    <EmbeddedResource Include="Resources\icon_doorwin_16.png" />
+    <EmbeddedResource Include="Resources\icon_mullion_32.png" />
+    <EmbeddedResource Include="Resources\icon_mullion_16.png" />
+    <EmbeddedResource Include="Resources\icon_category_32.png" />
+    <EmbeddedResource Include="Resources\icon_category_16.png" />
+    <EmbeddedResource Include="Resources\icon_fine_32.png" />
+    <EmbeddedResource Include="Resources\icon_fine_16.png" />
+    <EmbeddedResource Include="Resources\icon_about_32.png" />
+    <EmbeddedResource Include="Resources\icon_about_16.png" />
+  </ItemGroup>
+</Project>

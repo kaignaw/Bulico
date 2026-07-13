@@ -1,0 +1,59 @@
+﻿<Window x:Class="Bulico.FilterDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Bulico"
+        x:Name="ThisWindow"
+        Title="精细过滤"
+        Width="380" Height="420"
+        WindowStartupLocation="CenterScreen"
+        MinWidth="320" MinHeight="300"
+        ResizeMode="CanResize">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TreeView x:Name="FilterTree" Grid.Column="0"
+                      VirtualizingPanel.IsVirtualizing="False"
+                      BorderBrush="#CCC" BorderThickness="1">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type local:CategoryNode}" ItemsSource="{Binding Families}">
+                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}"
+                                  IsThreeState="True" Click="OnParentCheckBoxClick" />
+                    </HierarchicalDataTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type local:FamilyNode}" ItemsSource="{Binding Types}">
+                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}"
+                                  IsThreeState="True" Click="OnParentCheckBoxClick" />
+                    </HierarchicalDataTemplate>
+                    <DataTemplate DataType="{x:Type local:TypeNode}">
+                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}"
+                                  Click="OnTypeCheckBoxClick" />
+                    </DataTemplate>
+                </TreeView.Resources>
+            </TreeView>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="6,0,0,0">
+                <Button Content="全选" Width="55" Height="26" Margin="0,0,0,4" Click="OnSelectAll" />
+                <Button Content="清空" Width="55" Height="26" Margin="0,0,0,12" Click="OnDeselectAll" />
+                <Button Content="展开" Width="55" Height="26" Margin="0,0,0,4" Click="OnExpandAll" />
+                <Button Content="折叠" Width="55" Height="26" Click="OnCollapseAll" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Grid.Row="1" Text="{Binding SelectedCountText, ElementName=ThisWindow}"
+                   Margin="0,6,0,0" Foreground="#666" />
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <Button Content="确定" Width="60" Margin="0,0,4,0" IsDefault="True" Click="OnOk" />
+            <Button Content="取消" Width="60" IsCancel="True" Click="OnCancel" />
+        </StackPanel>
+    </Grid>
+</Window>
