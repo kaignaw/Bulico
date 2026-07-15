@@ -22,11 +22,17 @@ namespace Bulico
                 "Bulico.Resources.icon_beam_32.png",
                 "Bulico.Resources.icon_beam_16.png");
 
-            AddPushButton(panel, "BatchFloor", "批量建板",
-                typeof(BatchFloorCommand).FullName,
+            AddPushButton(panel, "WallBeamFloor", "墙梁建板",
+                typeof(WallBeamFloorCommand).FullName,
                 "在围合区域内批量创建楼板",
                 "Bulico.Resources.icon_floor_32.png",
                 "Bulico.Resources.icon_floor_16.png");
+
+            AddPushButton(panel, "RoomFloor", "房间建板",
+                typeof(RoomFloorCommand).FullName,
+                "根据房间轮廓批量创建楼板",
+                "Bulico.Resources.icon_roomfloor_32.png",
+                "Bulico.Resources.icon_roomfloor_16.png");
 
             AddPushButton(panel, "OneKeyHorizontalMullion", "一键横挺",
                 typeof(MullionCommand).FullName,
@@ -77,7 +83,13 @@ namespace Bulico
                 commandFullName);
 
             buttonData.ToolTip = tooltip;
+            SetButtonImage(buttonData, largeIcon, smallIcon);
+            panel.AddItem(buttonData);
+        }
 
+        private void SetButtonImage(PushButtonData buttonData,
+            string largeIcon, string smallIcon)
+        {
             var assembly = Assembly.GetExecutingAssembly();
 
             using (var stream = assembly.GetManifestResourceStream(largeIcon))
@@ -109,8 +121,6 @@ namespace Bulico
                     buttonData.Image = bitmap;
                 }
             }
-
-            panel.AddItem(buttonData);
         }
 
         public Result OnShutdown(UIControlledApplication application)

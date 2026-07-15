@@ -12,7 +12,8 @@ A lightweight Revit 2020 plugin collection for Chinese AEC workflows, featuring 
 |---------|------|-------------|
 | GridWallCommand | 框轴生墙 | Generate walls from grid intersections |
 | BeamCommand | 框墙生梁 | Generate beams on top of walls |
-| BatchFloorCommand | 批量建板 | Batch floor slabs from enclosed regions |
+| WallBeamFloorCommand | 墙梁建板 | Batch floor slabs from wall/beam enclosed regions |
+| RoomFloorCommand | 房间建板 | Batch floor slabs from room boundaries |
 | MullionCommand | 一键横挺 | Curtain wall horizontal mullions |
 | DoorWindowMarkCommand | 一键门窗类型标记 | Batch type marking for doors/windows |
 | SameTypeCommand | 同型过滤 | Filter elements of the same type |
@@ -62,8 +63,9 @@ Bulico/
 ├── README.md
 ├── Commands/                    # IExternalCommand implementations
 │   ├── AboutCommand.cs
-│   ├── BatchFloorCommand.cs
 │   ├── BeamCommand.cs
+│   ├── RoomFloorCommand.cs
+│   ├── WallBeamFloorCommand.cs
 │   ├── CategoryFilterCommand.cs
 │   ├── DoorWindowMarkCommand.cs
 │   ├── FineFilterCommand.cs

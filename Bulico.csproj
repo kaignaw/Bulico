@@ -43,5 +43,7 @@
     <EmbeddedResource Include="Resources\icon_fine_16.png" />
     <EmbeddedResource Include="Resources\icon_about_32.png" />
     <EmbeddedResource Include="Resources\icon_about_16.png" />
+    <EmbeddedResource Include="Resources\icon_roomfloor_32.png" />
+    <EmbeddedResource Include="Resources\icon_roomfloor_16.png" />
   </ItemGroup>
 </Project>

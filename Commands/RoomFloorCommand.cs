@@ -1,23 +1,22 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Structure;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
 namespace Bulico
 {
     [Transaction(TransactionMode.Manual)]
-    public class BatchFloorCommand : IExternalCommand
+    public class RoomFloorCommand : IExternalCommand
     {
         private static ElementId prevFloorTypeId = null;
         private static ElementId prevLevelId = null;
         private static double prevOffset = 0.0;
-        private static bool prevUseCenterline = true;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -31,7 +30,7 @@ namespace Bulico
 
             if (floorTypes.Count == 0)
             {
-                TaskDialog.Show("批量建板", "项目中无可用楼板类型！");
+                TaskDialog.Show("房间建板", "项目中无可用楼板类型！");
                 return Result.Cancelled;
             }
 
@@ -43,121 +42,110 @@ namespace Bulico
 
             if (levels.Count == 0)
             {
-                TaskDialog.Show("批量建板", "项目中无标高！");
+                TaskDialog.Show("房间建板", "项目中无标高！");
                 return Result.Cancelled;
             }
 
             FloorType selectedType = null;
             Level selectedLevel = null;
             double selectedOffset = 0.0;
-            bool useCenterlineMode = true;
-            if (!ShowSelectionWindow(floorTypes, levels, out selectedType, out selectedLevel, out selectedOffset, out useCenterlineMode))
+            if (!ShowSelectionWindow(floorTypes, levels, out selectedType, out selectedLevel, out selectedOffset))
                 return Result.Cancelled;
 
             try
             {
                 IList<Reference> selectedRefs = uidoc.Selection.PickObjects(
                     ObjectType.Element,
-                    new WallBeamFilter(),
-                    "框选或点选墙和梁（仅能选中墙和梁）");
+                    new RoomSelectionFilter(),
+                    "框选或点选房间构件（可正选或反选）");
 
                 if (selectedRefs == null || selectedRefs.Count == 0)
                 {
-                    TaskDialog.Show("批量建板", "未选中任何构件！");
+                    TaskDialog.Show("房间建板", "未选中任何房间！");
                     return Result.Cancelled;
                 }
 
-                List<Curve> curves = new List<Curve>();
+                List<Room> rooms = new List<Room>();
                 foreach (Reference selRef in selectedRefs)
                 {
                     Element elem = doc.GetElement(selRef);
-                    if (elem == null) continue;
-
-                    Curve curve = GetCenterCurve(elem, doc);
-                    if (curve != null)
-                        curves.Add(curve);
+                    if (elem is Room room && room != null)
+                        rooms.Add(room);
                 }
 
-                if (curves.Count < 3)
+                if (rooms.Count == 0)
                 {
-                    TaskDialog.Show("批量建板", "选中的构件无法形成闭合区域（至少需要3条线）！");
+                    TaskDialog.Show("房间建板", "未选中任何有效房间！");
                     return Result.Cancelled;
                 }
 
-                List<CurveLoop> regions = RegionFinder.FindClosedRegions(
-                    curves, doc.Application.ShortCurveTolerance);
-
-                if (regions.Count == 0)
+                SpatialElementBoundaryOptions boundaryOptions = new SpatialElementBoundaryOptions
                 {
-                    TaskDialog.Show("批量建板", "未找到任何闭合区域！请确保墙或梁围成了封闭空间。");
-                    return Result.Cancelled;
-                }
+                    SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish
+                };
 
-                if (!useCenterlineMode)
-                {
-                    double halfThick = ComputeAverageHalfThickness(selectedRefs, doc);
-                    if (halfThick > doc.Application.ShortCurveTolerance)
-                    {
-                        List<CurveLoop> insetRegions = new List<CurveLoop>();
-                        foreach (var loop in regions)
-                        {
-                            try
-                            {
-                                CurveLoop offset = CurveLoop.CreateViaOffset(loop, -halfThick, XYZ.BasisZ);
-                                if (offset != null && !offset.IsOpen())
-                                    insetRegions.Add(offset);
-                                else
-                                    insetRegions.Add(loop);
-                            }
-                            catch
-                            {
-                                insetRegions.Add(loop);
-                            }
-                        }
-                        regions = insetRegions;
-                    }
-                }
-
-                ProgressWindow progress = new ProgressWindow("批量建板");
+                ProgressWindow progress = new ProgressWindow("房间建板");
                 progress.Show();
-                progress.SetText("正在计算闭合区域...");
+                progress.SetText("正在生成楼板...");
                 progress.Pump();
 
-                int count = 0;
-                using (Transaction trans = new Transaction(doc, "批量建板"))
+                int successCount = 0;
+                using (Transaction trans = new Transaction(doc, "房间建板"))
                 {
                     trans.Start();
-                    progress.SetRange(regions.Count);
-                    for (int fi = 0; fi < regions.Count; fi++)
+                    progress.SetRange(rooms.Count);
+
+                    int fi = 0;
+                    foreach (Room room in rooms)
                     {
                         try
                         {
+                            IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(boundaryOptions);
+                            if (boundaries == null || boundaries.Count == 0)
+                                continue;
+
                             CurveArray profile = new CurveArray();
-                            foreach (Curve c in regions[fi])
+                            foreach (BoundarySegment seg in boundaries[0])
                             {
-                                profile.Append(c);
+                                Curve curve = seg.GetCurve();
+                                if (curve != null)
+                                    profile.Append(curve);
                             }
+
+                            if (profile.Size < 3)
+                                continue;
+
                             Floor floor = doc.Create.NewFloor(
                                 profile, selectedType, selectedLevel, false);
+
                             if (floor != null)
                             {
-                                floor.get_Parameter(
-                                    BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
-                                    .Set(UnitUtils.ConvertToInternalUnits(selectedOffset, DisplayUnitType.DUT_METERS));
+                                if (Math.Abs(selectedOffset) > 1e-9)
+                                {
+                                    floor.get_Parameter(
+                                        BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
+                                        .Set(UnitUtils.ConvertToInternalUnits(
+                                            selectedOffset, DisplayUnitType.DUT_METERS));
+                                }
+                                successCount++;
                             }
-                            count++;
                         }
                         catch (Exception)
                         {
                         }
-                        progress.Update(fi + 1, regions.Count);
+
+                        fi++;
+                        progress.Update(fi, rooms.Count);
                         progress.Pump();
                     }
+
                     trans.Commit();
                 }
 
                 progress.Close();
-                TaskDialog.Show("批量建板", string.Format("成功创建 {0} 个楼板！\n未成功创建 {1} 个。", count, regions.Count - count));
+                TaskDialog.Show("房间建板",
+                    string.Format("成功创建 {0} 个楼板！\n未成功创建 {1} 个。",
+                        successCount, rooms.Count - successCount));
                 return Result.Succeeded;
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
@@ -166,75 +154,23 @@ namespace Bulico
             }
         }
 
-        private Curve GetCenterCurve(Element elem, Document doc)
-        {
-            Wall wall = elem as Wall;
-            if (wall != null)
-            {
-                LocationCurve locCurve = wall.Location as LocationCurve;
-                if (locCurve == null) return null;
-
-                Curve baseCurve = locCurve.Curve;
-                if (baseCurve == null) return null;
-
-                try
-                {
-                    CompoundStructure cs = wall.WallType.GetCompoundStructure();
-                    if (cs != null)
-                    {
-                        double offset = cs.GetOffsetForLocationLine(WallLocationLine.CoreCenterline);
-                        if (Math.Abs(offset) > doc.Application.ShortCurveTolerance)
-                        {
-                            Line line = baseCurve as Line;
-                            if (line != null)
-                            {
-                                XYZ dir = (line.GetEndPoint(1) - line.GetEndPoint(0)).Normalize();
-                                return baseCurve.CreateOffset(offset, dir);
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                }
-
-                return baseCurve;
-            }
-            else
-            {
-                FamilyInstance fi = elem as FamilyInstance;
-                if (fi != null)
-                {
-                    LocationCurve locCurve = fi.Location as LocationCurve;
-                    if (locCurve == null) return null;
-                    return locCurve.Curve;
-                }
-            }
-
-            return null;
-        }
-
         private bool ShowSelectionWindow(
             List<FloorType> floorTypes,
             List<Level> levels,
             out FloorType selectedType,
             out Level selectedLevel,
-            out double selectedOffset,
-            out bool useCenterlineMode)
+            out double selectedOffset)
         {
             selectedType = null;
             selectedLevel = null;
             selectedOffset = 0.0;
-            useCenterlineMode = true;
 
             FloorType localType = null;
             Level localLevel = null;
             double localOffset = 0.0;
-            bool localCenterline = true;
 
             System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
             grid.Margin = new Thickness(12);
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
@@ -303,30 +239,6 @@ namespace Bulico
             System.Windows.Controls.Grid.SetRow(offsetBox, 2);
             System.Windows.Controls.Grid.SetColumn(offsetBox, 1);
 
-            Label modeLabel = new Label
-            {
-                Content = "生成方式：", VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 6, 0, 0)
-            };
-            System.Windows.Controls.Grid.SetRow(modeLabel, 3);
-            System.Windows.Controls.Grid.SetColumn(modeLabel, 0);
-
-            RadioButton centerlineRadio = new RadioButton
-            {
-                Content = "墙梁中心线", IsChecked = prevUseCenterline,
-                Margin = new Thickness(4, 4, 0, 2), GroupName = "mode"
-            };
-            RadioButton innerRadio = new RadioButton
-            {
-                Content = "墙梁内边线", IsChecked = !prevUseCenterline,
-                Margin = new Thickness(4, 2, 0, 4), GroupName = "mode"
-            };
-            StackPanel modePanel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(0, 2, 0, 0) };
-            modePanel.Children.Add(centerlineRadio);
-            modePanel.Children.Add(innerRadio);
-            System.Windows.Controls.Grid.SetRow(modePanel, 3);
-            System.Windows.Controls.Grid.SetColumn(modePanel, 1);
-
             StackPanel buttonPanel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -345,13 +257,13 @@ namespace Bulico
             buttonPanel.Children.Add(okButton);
             buttonPanel.Children.Add(cancelButton);
 
-            System.Windows.Controls.Grid.SetRow(buttonPanel, 4);
+            System.Windows.Controls.Grid.SetRow(buttonPanel, 3);
             System.Windows.Controls.Grid.SetColumnSpan(buttonPanel, 2);
 
             bool result = false;
             Window window = new Window
             {
-                Title = "批量建板",
+                Title = "房间建板",
                 Width = 380,
                 SizeToContent = SizeToContent.Height,
                 WindowStartupLocation = WindowStartupLocation.CenterScreen,
@@ -377,11 +289,9 @@ namespace Bulico
                 localType = ft;
                 localLevel = lv;
                 localOffset = val;
-                localCenterline = centerlineRadio.IsChecked == true;
                 prevFloorTypeId = ft.Id;
                 prevLevelId = lv.Id;
                 prevOffset = val;
-                prevUseCenterline = localCenterline;
                 result = true;
                 window.Close();
             };
@@ -394,8 +304,6 @@ namespace Bulico
             grid.Children.Add(levelCombo);
             grid.Children.Add(offsetLabel);
             grid.Children.Add(offsetBox);
-            grid.Children.Add(modeLabel);
-            grid.Children.Add(modePanel);
             grid.Children.Add(buttonPanel);
 
             window.ShowDialog();
@@ -403,43 +311,7 @@ namespace Bulico
             selectedType = localType;
             selectedLevel = localLevel;
             selectedOffset = localOffset;
-            useCenterlineMode = localCenterline;
             return result;
-        }
-
-        private double ComputeAverageHalfThickness(IList<Reference> refs, Document doc)
-        {
-            double total = 0;
-            int count = 0;
-            foreach (var r in refs)
-            {
-                Element e = doc.GetElement(r);
-                Wall wall = e as Wall;
-                if (wall != null)
-                {
-                    total += wall.WallType.Width;
-                    count++;
-                    continue;
-                }
-                FamilyInstance fi = e as FamilyInstance;
-                if (fi != null && fi.StructuralType == StructuralType.Beam)
-                {
-                    double bw = 0;
-                    Parameter p = fi.Symbol.LookupParameter("B");
-                    if (p != null) bw = p.AsDouble();
-                    if (bw < doc.Application.ShortCurveTolerance)
-                    {
-                        Parameter p2 = fi.Symbol.LookupParameter("b");
-                        if (p2 != null) bw = p2.AsDouble();
-                    }
-                    if (bw > doc.Application.ShortCurveTolerance)
-                    {
-                        total += bw; count++;
-                    }
-                }
-            }
-            if (count == 0) return 0;
-            return total / count / 2.0;
         }
     }
 }
