@@ -15,6 +15,7 @@ $iconDefs = @(
     @{Name="category"; Bg=[System.Drawing.Color]::FromArgb(139, 90, 43)}
     @{Name="fine";     Bg=[System.Drawing.Color]::FromArgb(0, 153, 153)}
     @{Name="roomfloor"; Bg=[System.Drawing.Color]::FromArgb(0, 150, 136)}
+    @{Name="elevgrid"; Bg=[System.Drawing.Color]::FromArgb(47, 64, 143)}
     @{Name="about";    Bg=[System.Drawing.Color]::FromArgb(80, 80, 80)}
 )
 
@@ -189,6 +190,24 @@ function Draw-Symbol {
             $g.FillEllipse($tw, $s*0.50, $s*0.76, $ds, $ds)
             $g.FillEllipse($tw, $s*0.60, $s*0.70, $ds, $ds)
             $p.Dispose(); $pt.Dispose(); $tw.Dispose()
+        }
+        "elevgrid" {
+            $pw = [Math]::Max(1.5, $s/16)
+            $p = New-Pen $White $pw
+            $sw = [Math]::Max(1.0, $s/24)
+            $pp = New-Pen $White $sw
+
+            $g.DrawLine($p, $s*0.28, $s*0.2, $s*0.28, $s*0.7)
+            $g.DrawLine($p, $s*0.72, $s*0.2, $s*0.72, $s*0.7)
+            $g.DrawLine($pp, $s*0.18, $s*0.82, $s*0.82, $s*0.82)
+
+            $arr = [Math]::Max(3, $s/5.5)
+            $g.DrawLine($pp, $s*0.18+$arr, $s*0.82-$arr, $s*0.18, $s*0.82)
+            $g.DrawLine($pp, $s*0.18+$arr, $s*0.82+$arr, $s*0.18, $s*0.82)
+            $g.DrawLine($pp, $s*0.82-$arr, $s*0.82-$arr, $s*0.82, $s*0.82)
+            $g.DrawLine($pp, $s*0.82-$arr, $s*0.82+$arr, $s*0.82, $s*0.82)
+
+            $p.Dispose(); $pp.Dispose()
         }
         "about" {
             $pw = [Math]::Max(1.5, $s/16)

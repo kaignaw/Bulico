@@ -34,6 +34,12 @@ namespace Bulico
                 "Bulico.Resources.icon_roomfloor_32.png",
                 "Bulico.Resources.icon_roomfloor_16.png");
 
+            AddPushButton(panel, "ElevationGridMark", "立面轴网标注",
+                typeof(ElevationGridMarkCommand).FullName,
+                "在立面/剖面视图中为框选轴网批量添加尺寸标注",
+                "Bulico.Resources.icon_elevgrid_32.png",
+                "Bulico.Resources.icon_elevgrid_16.png");
+
             AddPushButton(panel, "OneKeyHorizontalMullion", "一键横挺",
                 typeof(MullionCommand).FullName,
                 "在幕墙上批量生成横向网格线",
