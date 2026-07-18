@@ -1,8 +1,8 @@
 # Bulico — Revit 2020 Plugin Collection
 
-一套轻量级的 Revit 2020 插件工具集，提供轴网生墙、框墙生梁、批量建板、幕墙横挺生成、类型标记、构件过滤等实用功能。
+一套轻量级的 Revit 2020 插件工具集，提供轴网生墙、框墙生梁、批量建板、立面轴网标注、幕墙横挺生成、类型标记、构件过滤等实用功能。
 
-A lightweight Revit 2020 plugin collection for Chinese AEC workflows, featuring grid-to-wall, wall-to-beam, batch floor slab, curtain wall mullion, type marking, and element filtering.
+A lightweight Revit 2020 plugin collection for Chinese AEC workflows, featuring grid-to-wall, wall-to-beam, batch floor slab, elevation grid dimension, curtain wall mullion, type marking, and element filtering.
 
 ---
 
@@ -13,7 +13,8 @@ A lightweight Revit 2020 plugin collection for Chinese AEC workflows, featuring 
 | GridWallCommand | 框轴生墙 | Generate walls from grid intersections |
 | BeamCommand | 框墙生梁 | Generate beams on top of walls |
 | WallBeamFloorCommand | 墙梁建板 | Batch floor slabs from wall/beam enclosed regions |
-| RoomFloorCommand | 房间建板 | Batch floor slabs from room boundaries |
+| RoomFloorCommand | 房间建板 | Batch floor slabs from room boundaries (with opening support) |
+| ElevationGridMarkCommand | 立面轴网标注 | Batch dimension grids in elevation/section views |
 | MullionCommand | 一键横挺 | Curtain wall horizontal mullions |
 | DoorWindowMarkCommand | 一键门窗类型标记 | Batch type marking for doors/windows |
 | SameTypeCommand | 同型过滤 | Filter elements of the same type |
@@ -64,15 +65,21 @@ Bulico/
 ├── Commands/                    # IExternalCommand implementations
 │   ├── AboutCommand.cs
 │   ├── BeamCommand.cs
-│   ├── RoomFloorCommand.cs
-│   ├── WallBeamFloorCommand.cs
 │   ├── CategoryFilterCommand.cs
 │   ├── DoorWindowMarkCommand.cs
+│   ├── ElevationGridMarkCommand.cs
 │   ├── FineFilterCommand.cs
 │   ├── GridWallCommand.cs
 │   ├── MullionCommand.cs
-│   └── SameTypeCommand.cs
+│   ├── RoomFloorCommand.cs
+│   ├── SameTypeCommand.cs
+│   └── WallBeamFloorCommand.cs
 ├── UI/                          # WPF windows (XAML + code-behind)
+│   ├── BeamTypeSelector.xaml/.cs
+│   ├── DimTypeSelector.xaml/.cs
+│   ├── FilterDialog.xaml/.cs
+│   ├── MullionWindow.xaml/.cs
+│   └── WallTypeSelector.xaml/.cs
 ├── Utils/                       # Utility classes
 ├── Resources/                   # Icon resources (embedded)
 │   └── icon_*.png
