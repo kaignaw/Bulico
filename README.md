@@ -1,8 +1,16 @@
-# Bulico — Revit 2026.5+ Plugin Collection
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/bulico-lockup-dark.svg">
+    <img src="assets/brand/bulico-lockup.svg" alt="Bulico — Revit 2026.5+ plugin collection" width="640">
+  </picture>
+</p>
 
-一套轻量级的 Revit 2026.5+ 插件工具集，提供轴网生墙、框墙生梁、批量建板、立面轴网标注、幕墙横挺生成、类型标记、构件过滤等实用功能。
+<h1 align="center">Revit 2026.5+ Plugin Collection</h1>
 
-A lightweight Revit 2026.5+ plugin collection for Chinese AEC workflows, featuring grid-to-wall, wall-to-beam, batch floor slab, elevation grid dimension, curtain wall mullion, type marking, and element filtering.
+<p align="center">
+  一套轻量级的 Revit 2026.5+ 插件工具集，提供轴网生墙、框墙生梁、批量建板、立面轴网标注、幕墙横挺生成、类型标记、构件过滤等实用功能。<br>
+  <sub>A lightweight Revit 2026.5+ plugin collection for Chinese AEC workflows.</sub>
+</p>
 
 > **Development mainline / 开发主线:** Revit 2026.5+ (.NET 10). The Revit 2020 implementation is retired and kept only in git history. / Revit 2020 版本已停止维护，仅保留在 Git 历史中。
 

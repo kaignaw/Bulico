@@ -12,7 +12,8 @@ Simple vector marks for **Bulico — Revit 2026.5+ plugin collection**.
 | `01-grid-stack-dark.svg` | Grid Stack 深色版 / dark variant | 深色背景、夜间界面 |
 | `01-grid-stack-mono.svg` | Grid Stack 单色版 / monochrome | 单色印刷、雕刻、小尺寸 |
 | `app-icon-grid-stack.svg` | Grid Stack App 图标 / app icon | Revit 面板、Windows 图标 |
-| `bulico-lockup.svg` | Grid Stack 横向组合标志 / horizontal lockup | README、网站、演示文稿 |
+| `bulico-lockup.svg` | Grid Stack 横向组合标志 / horizontal lockup | README、网站、演示文稿（浅色） |
+| `bulico-lockup-dark.svg` | Grid Stack 横向组合标志（深色）/ dark lockup | README 深色主题、深色背景 |
 | `02-b-monogram.svg` | 几何 B 字母 / geometric B monogram | 备选图标、头像、社交平台 |
 | `03-floor-plan.svg` | 平面网格与核心筒 / floor-plan module | 按钮、工具栏、小尺寸 |
 | `04-mullion.svg` | 幕墙横挺 / curtain-wall mullion | 幕墙相关功能、分区标识 |
