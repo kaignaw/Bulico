@@ -69,5 +69,5 @@ Revit 2026 removed several legacy APIs. Do not reintroduce them:
 ## Versioning and release
 
 - `Properties/AssemblyInfo.cs` (`AssemblyVersion` / `AssemblyFileVersion`) and the `V1.x.yy` string in `Commands/AboutCommand.cs` must match.
-- `ReleasePackage/` contains committed release binaries (`Bulico.dll`, `Bulico.pdb`, `Bulico.addin`). Do not hand-edit them; refresh from build output only when preparing a release.
+- `ReleasePackage/` is a local-only staging folder for release binaries (`Bulico.dll`, `Bulico.pdb`, `Bulico.addin`). It is ignored by Git and must not be committed. Do not hand-edit the binaries; refresh them from build output only when preparing a release.
 - Deploy by copying `Bulico.dll` and `Bulico.addin` to `%AppData%\Autodesk\Revit\Addins\2026\`.
