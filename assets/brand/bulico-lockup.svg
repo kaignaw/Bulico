@@ -1,14 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 320" role="img" aria-labelledby="title">
-  <title id="title">Bulico logo lockup</title>
-  <g transform="translate(48 32) scale(0.5)" color="#0B1727" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M96 160 256 96 416 160 256 224Z" fill="#14B8A6" fill-opacity=".14"/>
-    <path d="M96 272 256 208 416 272 256 336Z"/>
-    <path d="M96 384 256 320 416 384 256 448Z"/>
-    <path d="M96 160v112M416 160v112M96 272v112M416 272v112"/>
-    <circle cx="256" cy="160" r="18" fill="#14B8A6" stroke="none"/>
+  <title id="title">Bulico Grid Stack logo lockup</title>
+  <g transform="translate(48 32) scale(0.5)" fill="none" stroke="#0B1727" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M112 256 256 200 400 256 256 312Z"/>
+    <path d="M112 384 256 328 400 384 256 440Z" stroke-opacity=".6"/>
+    <path d="M112 128v256M400 128v256" stroke-width="16" stroke-opacity=".4"/>
+    <path d="M112 128 256 72 400 128 256 184ZM256 104 280 128 256 152 232 128Z" fill="#14B8A6" stroke="none" fill-rule="evenodd"/>
   </g>
   <g color="#0B1727" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif">
-    <text x="352" y="170" font-size="132" font-weight="700" letter-spacing="-5" fill="currentColor">Bulico</text>
-    <text x="356" y="238" font-size="34" font-weight="600" letter-spacing="9" fill="#14B8A6">REVIT 2026.5+</text>
+    <text x="320" y="170" font-size="132" font-weight="700" letter-spacing="-5" fill="currentColor">Bulico</text>
+    <text x="324" y="238" font-size="34" font-weight="600" letter-spacing="9" fill="#14B8A6">REVIT 2026.5+</text>
   </g>
 </svg>

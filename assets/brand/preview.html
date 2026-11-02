@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bulico — Logo Concepts</title>
+  <title>Bulico — Grid Stack Refined</title>
   <style>
     :root {
       --ink: #0B1727;
@@ -11,14 +11,14 @@
       --paper: #F8FAFC;
       --line: #E2E8F0;
       --muted: #64748B;
-      --blue: #2563EB;
+      --bg: #EEF2F6;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      background: #EEF2F6;
+      background: var(--bg);
       color: var(--ink);
       font-family: "Segoe UI", Inter, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
@@ -35,7 +35,7 @@
       align-items: flex-end;
       justify-content: space-between;
       gap: 32px;
-      margin-bottom: 40px;
+      margin-bottom: 36px;
     }
 
     .eyebrow {
@@ -49,17 +49,121 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(36px, 5vw, 64px);
-      line-height: .98;
-      letter-spacing: -.045em;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: .95;
+      letter-spacing: -.055em;
     }
 
     .intro {
-      max-width: 360px;
+      max-width: 380px;
       margin: 0;
       color: var(--muted);
       font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .refine {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: #fff;
+    }
+
+    .refine-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+
+    .refine-head h2 {
+      margin: 0;
+      font-size: clamp(26px, 3vw, 40px);
+      letter-spacing: -.035em;
+    }
+
+    .refine-head p {
+      max-width: 440px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
       line-height: 1.65;
+    }
+
+    .variants {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .variant {
+      display: flex;
+      min-height: 226px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fff;
+    }
+
+    .variant img {
+      width: 100%;
+      height: 150px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .variant.dark {
+      border-color: var(--ink);
+      background: var(--ink);
+    }
+
+    .variant.dark figcaption { color: #94A3B8; }
+
+    .variant.icon img {
+      width: 148px;
+      height: 148px;
+      border-radius: 32px;
+      box-shadow: 0 18px 34px rgba(11, 23, 39, .22);
+    }
+
+    figcaption {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .02em;
+    }
+
+    .lockup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 16px;
+      padding: 18px 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(20, 184, 166, .08), transparent 42%),
+        #fff;
+    }
+
+    .lockup img {
+      width: 100%;
+      max-width: 820px;
+      height: auto;
+      display: block;
+    }
+
+    .section-title {
+      margin: 44px 0 18px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     .grid {
@@ -70,25 +174,25 @@
 
     .card {
       display: flex;
-      min-height: 300px;
+      min-height: 260px;
       flex-direction: column;
       padding: 24px;
       overflow: hidden;
-      background: #fff;
       border: 1px solid var(--line);
       border-radius: 24px;
+      background: #fff;
     }
 
     .card img {
       width: 100%;
-      height: 176px;
+      height: 150px;
       object-fit: contain;
       display: block;
     }
 
-    .card h2 {
+    .card h3 {
       margin: 18px 0 6px;
-      font-size: 17px;
+      font-size: 16px;
       letter-spacing: -.01em;
     }
 
@@ -107,25 +211,11 @@
     }
 
     .card.icon img {
-      width: 164px;
-      height: 164px;
+      width: 140px;
+      height: 140px;
       margin: 0 auto;
-      border-radius: 36px;
-      box-shadow: 0 18px 38px rgba(11, 23, 39, .18);
-    }
-
-    .lockup {
-      grid-column: span 2;
-      justify-content: center;
-      background:
-        linear-gradient(135deg, rgba(20, 184, 166, .08), transparent 42%),
-        #fff;
-    }
-
-    .lockup img {
-      width: 100%;
-      height: auto;
-      max-height: 260px;
+      border-radius: 30px;
+      box-shadow: 0 16px 30px rgba(11, 23, 39, .18);
     }
 
     .palette {
@@ -137,8 +227,8 @@
 
     .swatch {
       padding: 22px 24px;
-      border-radius: 20px;
       border: 1px solid var(--line);
+      border-radius: 20px;
       background: #fff;
     }
 
@@ -162,15 +252,14 @@
     }
 
     @media (max-width: 900px) {
+      .variants { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .grid, .palette { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .lockup { grid-column: span 2; }
     }
 
     @media (max-width: 620px) {
-      header { display: block; }
-      .intro { margin-top: 20px; }
-      .grid, .palette { grid-template-columns: 1fr; }
-      .lockup { grid-column: span 1; }
+      header, .refine-head { display: block; }
+      .intro, .refine-head p { margin-top: 18px; }
+      .variants, .grid, .palette { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -178,62 +267,85 @@
   <div class="wrap">
     <header>
       <div>
-        <p class="eyebrow">Bulico / Brand Exploration</p>
-        <h1>Logo concepts</h1>
+        <p class="eyebrow">Bulico / Selected direction</p>
+        <h1>Grid Stack</h1>
       </div>
       <p class="intro">
-        为 Revit 2026.5+ 插件工具集设计的极简矢量标志。围绕轴网、楼层、平面与幕墙的几何语言展开。
+        保留等轴测楼层堆叠的核心，用更克制的线宽、三层明暗和顶部实心楼板建立层级。顶部中央的透明菱形既是核心筒，也是视觉焦点。
       </p>
     </header>
 
-    <section class="grid" aria-label="Logo concepts">
-      <article class="card">
-        <img src="01-grid-stack.svg" alt="Grid Stack logo">
-        <h2>Grid Stack</h2>
-        <p>等轴测楼层堆叠，表达标高、楼层与构件生成。</p>
-        <code>01-grid-stack.svg</code>
-      </article>
+    <section class="refine" aria-label="Grid Stack refinements">
+      <div class="refine-head">
+        <div>
+          <p class="eyebrow">Refined mark</p>
+          <h2>One mark, four states</h2>
+        </div>
+        <p>
+          主标志使用 Ink + Teal；深色版反白线条；单色版用于印刷与雕刻；App 图标直接使用同一套几何。
+        </p>
+      </div>
 
+      <div class="variants">
+        <figure class="variant">
+          <img src="01-grid-stack.svg" alt="Grid Stack primary mark">
+          <figcaption>Primary · light</figcaption>
+        </figure>
+        <figure class="variant dark">
+          <img src="01-grid-stack-dark.svg" alt="Grid Stack dark mark">
+          <figcaption>Dark</figcaption>
+        </figure>
+        <figure class="variant">
+          <img src="01-grid-stack-mono.svg" alt="Grid Stack monochrome mark">
+          <figcaption>Monochrome</figcaption>
+        </figure>
+        <figure class="variant icon">
+          <img src="app-icon-grid-stack.svg" alt="Grid Stack app icon">
+          <figcaption>App icon</figcaption>
+        </figure>
+      </div>
+
+      <div class="lockup">
+        <img src="bulico-lockup.svg" alt="Bulico Grid Stack lockup">
+      </div>
+    </section>
+
+    <p class="section-title">Other directions / 其他方向</p>
+
+    <section class="grid" aria-label="Other logo concepts">
       <article class="card">
         <img src="02-b-monogram.svg" alt="B monogram logo">
-        <h2>B Monogram</h2>
+        <h3>B Monogram</h3>
         <p>用建筑制图般的圆弧构成 B，中央嵌入青色模块。</p>
         <code>02-b-monogram.svg</code>
       </article>
 
       <article class="card">
         <img src="03-floor-plan.svg" alt="Floor plan logo">
-        <h2>Floor Plan</h2>
+        <h3>Floor Plan</h3>
         <p>平面墙体围合出核心筒，适合工具栏与小尺寸。</p>
         <code>03-floor-plan.svg</code>
       </article>
 
       <article class="card">
         <img src="04-mullion.svg" alt="Mullion logo">
-        <h2>Mullion</h2>
+        <h3>Mullion</h3>
         <p>幕墙横挺与竖挺的网格，青色横线作为视觉焦点。</p>
         <code>04-mullion.svg</code>
       </article>
 
       <article class="card">
         <img src="05-module.svg" alt="Module logo">
-        <h2>Module</h2>
-        <p>四宫格模块，暗示插件集合与可组合的工具。 </p>
+        <h3>Module</h3>
+        <p>四宫格模块，暗示插件集合与可组合的工具。</p>
         <code>05-module.svg</code>
       </article>
 
       <article class="card icon">
-        <img src="app-icon.svg" alt="Bulico app icon">
-        <h2>App Icon</h2>
-        <p>深色圆角底板的 B 字母图标，可直接用于 Revit 面板。</p>
+        <img src="app-icon.svg" alt="Bulico B app icon">
+        <h3>B App Icon</h3>
+        <p>B 字母版本的深色圆角图标，作为备选图标方案。</p>
         <code>app-icon.svg</code>
-      </article>
-
-      <article class="card lockup">
-        <img src="bulico-lockup.svg" alt="Bulico horizontal lockup">
-        <h2>Horizontal Lockup</h2>
-        <p>横向组合标志，适合 README、网站标题和演示文稿。</p>
-        <code>bulico-lockup.svg</code>
       </article>
     </section>
 
@@ -246,7 +358,7 @@
       <div class="swatch">
         <div class="chip" style="background:#14B8A6"></div>
         <strong>Teal</strong>
-        <span>#14B8A6 · 强调色与节点</span>
+        <span>#14B8A6 · 强调色与顶部楼板</span>
       </div>
       <div class="swatch">
         <div class="chip" style="background:#F8FAFC;border:1px solid #E2E8F0"></div>
@@ -256,7 +368,7 @@
     </section>
 
     <footer>
-      所有独立标志为 512 × 512 矢量画布，主线条使用 <code>currentColor</code>。正式使用前可按项目需要调整线宽、圆角与字体轮廓。
+      Grid Stack 使用 512 × 512 画布，顶部楼板的菱形孔洞为透明区域，可随背景自然适配。深色与单色版本使用同一套几何，便于图标、印刷与界面复用。
     </footer>
   </div>
 </body>

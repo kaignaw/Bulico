@@ -94,7 +94,7 @@ Bulico/
 
 ## Brand / 品牌标志
 
-Vector logo concepts are in [`assets/brand/`](assets/brand/). Open [`assets/brand/preview.html`](assets/brand/preview.html) for a visual overview.
+Vector logo concepts are in [`assets/brand/`](assets/brand/). Open [`assets/brand/preview.html`](assets/brand/preview.html) for a visual overview. The refined **Grid Stack** mark is the current preferred direction.
 
 ## License / 许可证
 
