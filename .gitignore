@@ -5,6 +5,7 @@ obj/
 *.suo
 *.sln.docstates
 *.nupkg
+ReleasePackage/
 
 ## VS
 .vs/
