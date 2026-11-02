@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bulico — Logo Concepts</title>
+  <style>
+    :root {
+      --ink: #0B1727;
+      --teal: #14B8A6;
+      --paper: #F8FAFC;
+      --line: #E2E8F0;
+      --muted: #64748B;
+      --blue: #2563EB;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #EEF2F6;
+      color: var(--ink);
+      font-family: "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 56px 28px 80px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 5vw, 64px);
+      line-height: .98;
+      letter-spacing: -.045em;
+    }
+
+    .intro {
+      max-width: 360px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      display: flex;
+      min-height: 300px;
+      flex-direction: column;
+      padding: 24px;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+    }
+
+    .card img {
+      width: 100%;
+      height: 176px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .card h2 {
+      margin: 18px 0 6px;
+      font-size: 17px;
+      letter-spacing: -.01em;
+    }
+
+    .card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .card code {
+      margin-top: auto;
+      color: var(--muted);
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 11px;
+    }
+
+    .card.icon img {
+      width: 164px;
+      height: 164px;
+      margin: 0 auto;
+      border-radius: 36px;
+      box-shadow: 0 18px 38px rgba(11, 23, 39, .18);
+    }
+
+    .lockup {
+      grid-column: span 2;
+      justify-content: center;
+      background:
+        linear-gradient(135deg, rgba(20, 184, 166, .08), transparent 42%),
+        #fff;
+    }
+
+    .lockup img {
+      width: 100%;
+      height: auto;
+      max-height: 260px;
+    }
+
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .swatch {
+      padding: 22px 24px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .swatch .chip {
+      width: 100%;
+      height: 56px;
+      margin-bottom: 14px;
+      border-radius: 12px;
+    }
+
+    .swatch strong { display: block; font-size: 14px; }
+    .swatch span { color: var(--muted); font-size: 12px; }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 900px) {
+      .grid, .palette { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lockup { grid-column: span 2; }
+    }
+
+    @media (max-width: 620px) {
+      header { display: block; }
+      .intro { margin-top: 20px; }
+      .grid, .palette { grid-template-columns: 1fr; }
+      .lockup { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">Bulico / Brand Exploration</p>
+        <h1>Logo concepts</h1>
+      </div>
+      <p class="intro">
+        为 Revit 2026.5+ 插件工具集设计的极简矢量标志。围绕轴网、楼层、平面与幕墙的几何语言展开。
+      </p>
+    </header>
+
+    <section class="grid" aria-label="Logo concepts">
+      <article class="card">
+        <img src="01-grid-stack.svg" alt="Grid Stack logo">
+        <h2>Grid Stack</h2>
+        <p>等轴测楼层堆叠，表达标高、楼层与构件生成。</p>
+        <code>01-grid-stack.svg</code>
+      </article>
+
+      <article class="card">
+        <img src="02-b-monogram.svg" alt="B monogram logo">
+        <h2>B Monogram</h2>
+        <p>用建筑制图般的圆弧构成 B，中央嵌入青色模块。</p>
+        <code>02-b-monogram.svg</code>
+      </article>
+
+      <article class="card">
+        <img src="03-floor-plan.svg" alt="Floor plan logo">
+        <h2>Floor Plan</h2>
+        <p>平面墙体围合出核心筒，适合工具栏与小尺寸。</p>
+        <code>03-floor-plan.svg</code>
+      </article>
+
+      <article class="card">
+        <img src="04-mullion.svg" alt="Mullion logo">
+        <h2>Mullion</h2>
+        <p>幕墙横挺与竖挺的网格，青色横线作为视觉焦点。</p>
+        <code>04-mullion.svg</code>
+      </article>
+
+      <article class="card">
+        <img src="05-module.svg" alt="Module logo">
+        <h2>Module</h2>
+        <p>四宫格模块，暗示插件集合与可组合的工具。 </p>
+        <code>05-module.svg</code>
+      </article>
+
+      <article class="card icon">
+        <img src="app-icon.svg" alt="Bulico app icon">
+        <h2>App Icon</h2>
+        <p>深色圆角底板的 B 字母图标，可直接用于 Revit 面板。</p>
+        <code>app-icon.svg</code>
+      </article>
+
+      <article class="card lockup">
+        <img src="bulico-lockup.svg" alt="Bulico horizontal lockup">
+        <h2>Horizontal Lockup</h2>
+        <p>横向组合标志，适合 README、网站标题和演示文稿。</p>
+        <code>bulico-lockup.svg</code>
+      </article>
+    </section>
+
+    <section class="palette" aria-label="Brand palette">
+      <div class="swatch">
+        <div class="chip" style="background:#0B1727"></div>
+        <strong>Ink</strong>
+        <span>#0B1727 · 主线条与文字</span>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#14B8A6"></div>
+        <strong>Teal</strong>
+        <span>#14B8A6 · 强调色与节点</span>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background:#F8FAFC;border:1px solid #E2E8F0"></div>
+        <strong>Paper</strong>
+        <span>#F8FAFC · 浅色背景</span>
+      </div>
+    </section>
+
+    <footer>
+      所有独立标志为 512 × 512 矢量画布，主线条使用 <code>currentColor</code>。正式使用前可按项目需要调整线宽、圆角与字体轮廓。
+    </footer>
+  </div>
+</body>
+</html>

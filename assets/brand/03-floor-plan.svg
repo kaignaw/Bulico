@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Bulico Floor Plan mark</title>
+  <g color="#0B1727" fill="none" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="112" y="112" width="288" height="288" rx="24"/>
+    <path d="M256 112v112M256 288v112M112 256h112M288 256h112"/>
+  </g>
+  <rect x="232" y="232" width="48" height="48" rx="12" fill="#14B8A6"/>
+</svg>

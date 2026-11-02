@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Bulico Grid Stack mark</title>
+  <g color="#0B1727" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 160 256 96 416 160 256 224Z" fill="#14B8A6" fill-opacity=".14"/>
+    <path d="M96 272 256 208 416 272 256 336Z"/>
+    <path d="M96 384 256 320 416 384 256 448Z"/>
+    <path d="M96 160v112M416 160v112M96 272v112M416 272v112"/>
+  </g>
+  <circle cx="256" cy="160" r="18" fill="#14B8A6"/>
+</svg>

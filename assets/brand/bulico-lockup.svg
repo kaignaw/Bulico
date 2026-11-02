@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 320" role="img" aria-labelledby="title">
+  <title id="title">Bulico logo lockup</title>
+  <g transform="translate(48 32) scale(0.5)" color="#0B1727" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 160 256 96 416 160 256 224Z" fill="#14B8A6" fill-opacity=".14"/>
+    <path d="M96 272 256 208 416 272 256 336Z"/>
+    <path d="M96 384 256 320 416 384 256 448Z"/>
+    <path d="M96 160v112M416 160v112M96 272v112M416 272v112"/>
+    <circle cx="256" cy="160" r="18" fill="#14B8A6" stroke="none"/>
+  </g>
+  <g color="#0B1727" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif">
+    <text x="352" y="170" font-size="132" font-weight="700" letter-spacing="-5" fill="currentColor">Bulico</text>
+    <text x="356" y="238" font-size="34" font-weight="600" letter-spacing="9" fill="#14B8A6">REVIT 2026.5+</text>
+  </g>
+</svg>
