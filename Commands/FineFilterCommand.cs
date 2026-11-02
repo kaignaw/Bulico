@@ -64,7 +64,7 @@ namespace Bulico
 
         private static ElementId GetPseudoTypeId(Element e)
         {
-            return new ElementId(PseudoTypeIdOffset - e.Category.Id.IntegerValue);
+            return new ElementId((long)PseudoTypeIdOffset - e.Category.Id.Value);
         }
 
         private List<CategoryNode> BuildHierarchy(Document doc, ICollection<ElementId> ids)

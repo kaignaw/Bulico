@@ -80,14 +80,19 @@ namespace Bulico
                             Curve curve1 = selectedGrids[i].Curve;
                             Curve curve2 = selectedGrids[j].Curve;
 
-                            IntersectionResultArray results;
-                            SetComparisonResult result = curve1.Intersect(curve2, out results);
-
-                            if (result == SetComparisonResult.Overlap && results != null && results.Size > 0)
+                            using (CurveIntersectResult result = curve1.Intersect(
+                                curve2, CurveIntersectResultOption.Detailed))
                             {
-                                foreach (IntersectionResult ir in results)
+                                if (result.Result == SetComparisonResult.Disjoint ||
+                                    result.Result == SetComparisonResult.Equal)
+                                    continue;
+
+                                foreach (CurveOverlapPoint overlap in result.GetOverlaps())
                                 {
-                                    XYZ pt = ir.XYZPoint;
+                                    if (overlap.Type != CurveOverlapPointType.Intersection)
+                                        continue;
+
+                                    XYZ pt = overlap.Point;
                                     string key = $"{pt.X:F4},{pt.Y:F4}";
                                     if (seen.Add(key))
                                         intersectionPoints.Add(pt);

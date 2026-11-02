@@ -22,7 +22,7 @@ namespace Bulico
                 .OfClass(typeof(FamilySymbol))
                 .Cast<FamilySymbol>()
                 .Where(fs => fs.Category != null &&
-                    fs.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                    fs.Category.Id.Value == (long)BuiltInCategory.OST_StructuralFraming)
                 .OrderBy(fs => fs.Family.Name)
                 .ThenBy(fs => fs.Name)
                 .Select(fs => new BeamTypeItem

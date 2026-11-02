@@ -118,13 +118,17 @@ namespace Bulico
                                 continue;
                             }
 
-                            CurveArray outerProfile = new CurveArray();
+                            CurveLoop outerProfile = new CurveLoop();
                             foreach (BoundarySegment seg in boundarySegments[0])
                             {
                                 outerProfile.Append(seg.GetCurve());
                             }
 
-                            Floor floor = doc.Create.NewFloor(outerProfile, selectedType, selectedLevel, false);
+                            Floor floor = Floor.Create(
+                                doc,
+                                new List<CurveLoop> { outerProfile },
+                                selectedType.Id,
+                                selectedLevel.Id);
                             if (floor == null)
                             {
                                 failCount++;
@@ -132,7 +136,7 @@ namespace Bulico
                             }
 
                             floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
-                                .Set(UnitUtils.ConvertToInternalUnits(selectedOffset, DisplayUnitType.DUT_METERS));
+                                .Set(UnitUtils.ConvertToInternalUnits(selectedOffset, UnitTypeId.Meters));
 
                             List<CurveArray> holeProfiles = new List<CurveArray>();
                             for (int hi = 1; hi < boundarySegments.Count; hi++)

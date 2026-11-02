@@ -6,6 +6,6 @@
     <ClientId>E7F8A1B2-C3D4-5E6F-7890-ABCDEF123456</ClientId>
     <FullClassName>Bulico.App</FullClassName>
     <VendorId>Bulico</VendorId>
-    <VendorDescription>Bulico</VendorDescription>
+    <VendorDescription>Bulico - Revit 2026.5+</VendorDescription>
   </AddIn>
 </RevitAddIns>

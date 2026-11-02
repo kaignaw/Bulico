@@ -1,8 +1,10 @@
-# Bulico — Revit 2020 Plugin Collection
+# Bulico — Revit 2026.5+ Plugin Collection
 
-一套轻量级的 Revit 2020 插件工具集，提供轴网生墙、框墙生梁、批量建板、立面轴网标注、幕墙横挺生成、类型标记、构件过滤等实用功能。
+一套轻量级的 Revit 2026.5+ 插件工具集，提供轴网生墙、框墙生梁、批量建板、立面轴网标注、幕墙横挺生成、类型标记、构件过滤等实用功能。
 
-A lightweight Revit 2020 plugin collection for Chinese AEC workflows, featuring grid-to-wall, wall-to-beam, batch floor slab, elevation grid dimension, curtain wall mullion, type marking, and element filtering.
+A lightweight Revit 2026.5+ plugin collection for Chinese AEC workflows, featuring grid-to-wall, wall-to-beam, batch floor slab, elevation grid dimension, curtain wall mullion, type marking, and element filtering.
+
+> **Development mainline / 开发主线:** Revit 2026.5+ (.NET 10). The Revit 2020 implementation is retired and kept only in git history. / Revit 2020 版本已停止维护，仅保留在 Git 历史中。
 
 ---
 
@@ -25,27 +27,30 @@ A lightweight Revit 2020 plugin collection for Chinese AEC workflows, featuring 
 
 | Component | Version |
 |-----------|---------|
-| Revit | 2020 |
-| .NET Framework | 4.8 |
-| Visual Studio | 2019+ (optional) |
-| .NET Core SDK | 3.1+ (for CLI build) |
+| Revit | 2026.5+ |
+| .NET | 10.0 |
+| Visual Studio | 2022 17.12+ / 2026 |
+| .NET SDK | 10.0+ |
 
-**References / 引用路径:**
-- `C:\Program Files\Autodesk\Revit 2020\RevitAPI.dll`
-- `C:\Program Files\Autodesk\Revit 2020\RevitAPIUI.dll`
+**API references / 引用:**
+- `C:\Program Files\Autodesk\Revit 2026\RevitAPI.dll`
+- `C:\Program Files\Autodesk\Revit 2026\RevitAPIUI.dll`
+
+Revit 2026.5+ is the active development mainline. Earlier 2026.0–2026.4 updates use .NET 8 and are legacy-only. Override the install path with `-p:RevitInstallDir=<path>` if Revit is not under the default location.
 
 ## Build / 编译
 
 ```bash
-dotnet clean -c Release
 dotnet build -c Release
 ```
 
-Output: `bin\Release\net48\Bulico.dll`
+`dotnet build` restores implicitly. Avoid running `dotnet clean` before the first restore on a fresh clone; it fails without `obj/project.assets.json`.
+
+Output: `bin\Release\net10.0-windows\Bulico.dll`
 
 ## Deploy / 部署
 
-Copy these files to `%AppData%\Autodesk\Revit\Addins\2020\`:
+Copy these files to `%AppData%\Autodesk\Revit\Addins\2026\`:
 
 - `Bulico.dll`
 - `Bulico.addin`
@@ -59,7 +64,7 @@ The **Bulico** panel will appear under the "Add-Ins" tab in Revit.
 ```
 Bulico/
 ├── App.cs                       # IExternalApplication entry / 入口
-├── Bulico.csproj                # Project file (.NET Framework 4.8, x64)
+├── Bulico.csproj                # Project file (.NET 10, x64, WPF)
 ├── Bulico.addin                 # Deployment manifest / 部署清单
 ├── README.md
 ├── Commands/                    # IExternalCommand implementations

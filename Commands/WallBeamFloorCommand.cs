@@ -132,18 +132,16 @@ namespace Bulico
                     {
                         try
                         {
-                            CurveArray profile = new CurveArray();
-                            foreach (Curve c in regions[fi])
-                            {
-                                profile.Append(c);
-                            }
-                            Floor floor = doc.Create.NewFloor(
-                                profile, selectedType, selectedLevel, false);
+                            Floor floor = Floor.Create(
+                                doc,
+                                new List<CurveLoop> { regions[fi] },
+                                selectedType.Id,
+                                selectedLevel.Id);
                             if (floor != null)
                             {
                                 floor.get_Parameter(
                                     BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
-                                    .Set(UnitUtils.ConvertToInternalUnits(selectedOffset, DisplayUnitType.DUT_METERS));
+                                    .Set(UnitUtils.ConvertToInternalUnits(selectedOffset, UnitTypeId.Meters));
                             }
                             count++;
                         }

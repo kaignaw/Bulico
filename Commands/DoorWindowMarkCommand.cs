@@ -22,7 +22,7 @@ namespace Bulico
                 {
                     Category cat = fs.Category;
                     if (cat == null) return false;
-                    BuiltInCategory bic = (BuiltInCategory)cat.Id.IntegerValue;
+                    BuiltInCategory bic = (BuiltInCategory)cat.Id.Value;
                     return bic == BuiltInCategory.OST_Doors || bic == BuiltInCategory.OST_Windows;
                 })
                 .ToList();
