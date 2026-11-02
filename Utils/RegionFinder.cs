@@ -7,6 +7,9 @@ namespace Bulico
 {
     public static class RegionFinder
     {
+        private const int MaxEdges = 20000;
+        private const int MaxFaces = 5000;
+
         public static List<CurveLoop> FindClosedRegions(List<Curve> curves, double tolerance)
         {
             if (curves == null || curves.Count < 3)
@@ -103,55 +106,83 @@ namespace Bulico
         {
             for (int pass = 0; pass < 20; pass++)
             {
-                bool anySplit = false;
                 int n = edges.Count;
+                if (n < 2 || n > MaxEdges) break;
 
+                // 按最小 X 排序做扫描线，只比较 X 区间可能重叠的边，
+                // 避免复杂选择下的全量两两求交。
+                List<int> order = new List<int>(n);
                 for (int i = 0; i < n; i++)
+                    order.Add(i);
+                order.Sort((a, b) => MinX(edges[a]).CompareTo(MinX(edges[b])));
+
+                List<int> active = new List<int>();
+                bool anySplit = false;
+
+                foreach (int i in order)
                 {
                     Edge e1 = edges[i];
-                    double e1x1 = Math.Min(e1.Start.X, e1.End.X);
-                    double e1x2 = Math.Max(e1.Start.X, e1.End.X);
-                    double e1y1 = Math.Min(e1.Start.Y, e1.End.Y);
-                    double e1y2 = Math.Max(e1.Start.Y, e1.End.Y);
+                    double e1MinX = MinX(e1);
 
-                    for (int j = i + 1; j < n; j++)
+                    active.RemoveAll(j => MaxX(edges[j]) < e1MinX - eps);
+
+                    for (int k = 0; k < active.Count; k++)
                     {
-                        Edge e2 = edges[j];
-
-                        if (e1x2 < Math.Min(e2.Start.X, e2.End.X) - eps) continue;
-                        if (e1x1 > Math.Max(e2.Start.X, e2.End.X) + eps) continue;
-                        if (e1y2 < Math.Min(e2.Start.Y, e2.End.Y) - eps) continue;
-                        if (e1y1 > Math.Max(e2.Start.Y, e2.End.Y) + eps) continue;
+                        Edge e2 = edges[active[k]];
+                        if (!AabbOverlap(e1, e2, eps)) continue;
 
                         XYZ pt = ComputeIntersection(e1, e2, eps);
                         if (pt == null) continue;
-
-                        bool onE1 = IsPointOnSegment(pt, e1, eps);
-                        bool onE2 = IsPointOnSegment(pt, e2, eps);
-                        if (!onE1 || !onE2) continue;
+                        if (!IsPointOnSegment(pt, e1, eps) || !IsPointOnSegment(pt, e2, eps)) continue;
 
                         bool epE1 = pt.DistanceTo(e1.Start) < eps || pt.DistanceTo(e1.End) < eps;
                         bool epE2 = pt.DistanceTo(e2.Start) < eps || pt.DistanceTo(e2.End) < eps;
 
-                        if (onE1 && !epE1)
+                        if (!epE1)
                         {
                             edges.Add(new Edge(pt, e1.End));
                             e1.End = pt;
-                            n = edges.Count;
                             anySplit = true;
                         }
-                        if (onE2 && !epE2)
+                        if (!epE2)
                         {
                             edges.Add(new Edge(pt, e2.End));
                             e2.End = pt;
-                            n = edges.Count;
                             anySplit = true;
                         }
                     }
+
+                    active.Add(i);
                 }
 
                 if (!anySplit) break;
             }
+        }
+
+        static double MinX(Edge edge)
+        {
+            return Math.Min(edge.Start.X, edge.End.X);
+        }
+
+        static double MaxX(Edge edge)
+        {
+            return Math.Max(edge.Start.X, edge.End.X);
+        }
+
+        static bool AabbOverlap(Edge e1, Edge e2, double eps)
+        {
+            if (MaxX(e1) < MinX(e2) - eps) return false;
+            if (MinX(e1) > MaxX(e2) + eps) return false;
+
+            double e1MinY = Math.Min(e1.Start.Y, e1.End.Y);
+            double e1MaxY = Math.Max(e1.Start.Y, e1.End.Y);
+            double e2MinY = Math.Min(e2.Start.Y, e2.End.Y);
+            double e2MaxY = Math.Max(e2.Start.Y, e2.End.Y);
+
+            if (e1MaxY < e2MinY - eps) return false;
+            if (e1MinY > e2MaxY + eps) return false;
+
+            return true;
         }
 
         static XYZ ComputeIntersection(Edge e1, Edge e2, double eps)
@@ -201,29 +232,87 @@ namespace Bulico
 
         static void RemoveDanglingEdges(List<Edge> edges)
         {
-            bool any;
-            do
-            {
-                var deg = new Dictionary<string, int>();
-                foreach (var e in edges)
-                {
-                    string ks = PtKey(e.Start);
-                    string ke = PtKey(e.End);
-                    int c;
-                    deg.TryGetValue(ks, out c); deg[ks] = c + 1;
-                    deg.TryGetValue(ke, out c); deg[ke] = c + 1;
-                }
+            if (edges.Count == 0) return;
 
-                any = false;
-                for (int i = edges.Count - 1; i >= 0; i--)
-                {
-                    if (deg[PtKey(edges[i].Start)] == 1 || deg[PtKey(edges[i].End)] == 1)
-                    {
-                        edges.RemoveAt(i);
-                        any = true;
-                    }
-                }
-            } while (any);
+            var endpointEdges = new Dictionary<string, List<int>>();
+            for (int i = 0; i < edges.Count; i++)
+            {
+                AddEndpointEdge(endpointEdges, PtKey(edges[i].Start), i);
+                AddEndpointEdge(endpointEdges, PtKey(edges[i].End), i);
+            }
+
+            bool[] alive = new bool[edges.Count];
+            for (int i = 0; i < alive.Length; i++)
+                alive[i] = true;
+
+            var queue = new Queue<string>();
+            foreach (var kvp in endpointEdges)
+            {
+                if (kvp.Value.Count == 1)
+                    queue.Enqueue(kvp.Key);
+            }
+
+            while (queue.Count > 0)
+            {
+                string key = queue.Dequeue();
+                List<int> list;
+                if (!endpointEdges.TryGetValue(key, out list) || list.Count != 1)
+                    continue;
+
+                int index = list[0];
+                if (index < 0 || index >= edges.Count || !alive[index])
+                    continue;
+
+                Edge edge = edges[index];
+                string startKey = PtKey(edge.Start);
+                string endKey = PtKey(edge.End);
+
+                alive[index] = false;
+                RemoveEndpointEdge(endpointEdges, startKey, index);
+                RemoveEndpointEdge(endpointEdges, endKey, index);
+
+                EnqueueIfDangling(endpointEdges, queue, startKey);
+                EnqueueIfDangling(endpointEdges, queue, endKey);
+            }
+
+            int write = 0;
+            for (int i = 0; i < edges.Count; i++)
+            {
+                if (alive[i])
+                    edges[write++] = edges[i];
+            }
+
+            if (write < edges.Count)
+                edges.RemoveRange(write, edges.Count - write);
+        }
+
+        private static void AddEndpointEdge(Dictionary<string, List<int>> map, string key, int index)
+        {
+            List<int> list;
+            if (!map.TryGetValue(key, out list))
+            {
+                list = new List<int>();
+                map[key] = list;
+            }
+            list.Add(index);
+        }
+
+        private static void RemoveEndpointEdge(Dictionary<string, List<int>> map, string key, int index)
+        {
+            List<int> list;
+            if (!map.TryGetValue(key, out list))
+                return;
+
+            list.Remove(index);
+            if (list.Count == 0)
+                map.Remove(key);
+        }
+
+        private static void EnqueueIfDangling(Dictionary<string, List<int>> map, Queue<string> queue, string key)
+        {
+            List<int> list;
+            if (map.TryGetValue(key, out list) && list.Count == 1)
+                queue.Enqueue(key);
         }
 
         class Graph
@@ -280,6 +369,7 @@ namespace Bulico
         {
             var faces = new List<List<XYZ>>();
             var visited = new HashSet<string>();
+            var seenFaces = new HashSet<string>();
 
             foreach (var kvp in graph.Adj)
             {
@@ -338,14 +428,14 @@ namespace Bulico
 
                     if (closed && face.Count >= 3)
                     {
-                        bool dup = false;
-                        int fc = faces.Count;
-                        for (int fi = 0; fi < fc; fi++)
+                        // 用规范化顶点序列去重，避免每发现一个面就与已有面逐点比较。
+                        string faceKey = CanonicalFaceKey(face);
+                        if (seenFaces.Add(faceKey))
                         {
-                            if (IsSamePolygon(face, faces[fi]))
-                            { dup = true; break; }
+                            faces.Add(face);
+                            if (faces.Count >= MaxFaces)
+                                return faces;
                         }
-                        if (!dup) faces.Add(face);
                     }
                 }
             }
@@ -353,31 +443,35 @@ namespace Bulico
             return faces;
         }
 
-        static bool IsSamePolygon(List<XYZ> p1, List<XYZ> p2)
+        static string CanonicalFaceKey(List<XYZ> face)
         {
-            int n = p1.Count;
-            if (p2.Count != n) return false;
-            for (int off = 0; off < n; off++)
+            int n = face.Count;
+            string[] keys = new string[n];
+            for (int i = 0; i < n; i++)
+                keys[i] = PtKey(face[i]);
+
+            string best = null;
+            for (int start = 0; start < n; start++)
             {
-                bool ok = true;
-                for (int i = 0; i < n; i++)
+                for (int dir = 0; dir < 2; dir++)
                 {
-                    if (!p1[i].IsAlmostEqualTo(p2[(i + off) % n]))
-                    { ok = false; break; }
+                    var sb = new System.Text.StringBuilder(n * 12);
+                    for (int i = 0; i < n; i++)
+                    {
+                        int idx = dir == 0
+                            ? (start + i) % n
+                            : ((start - i) % n + n) % n;
+                        sb.Append(keys[idx]);
+                        sb.Append(';');
+                    }
+
+                    string candidate = sb.ToString();
+                    if (best == null || string.CompareOrdinal(candidate, best) < 0)
+                        best = candidate;
                 }
-                if (ok) return true;
             }
-            for (int off = 0; off < n; off++)
-            {
-                bool ok = true;
-                for (int i = 0; i < n; i++)
-                {
-                    if (!p1[i].IsAlmostEqualTo(p2[(n - 1 - i + off) % n]))
-                    { ok = false; break; }
-                }
-                if (ok) return true;
-            }
-            return false;
+
+            return best ?? string.Empty;
         }
 
         static double ComputeSignedArea(List<XYZ> polygon)

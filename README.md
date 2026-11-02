@@ -61,9 +61,9 @@ Copy these files to `%AppData%\Autodesk\Revit\Addins\2026\`:
 - `Bulico.dll`
 - `Bulico.addin`
 
-The **Bulico** panel will appear under the "Add-Ins" tab in Revit.
+The plugin creates its own **Bulico** tab in the Revit ribbon, with four panels: **建模**, **注释**, **效率**, **其他**.
 
-启动 Revit 后，在"附加模块"选项卡中可以看到 **Bulico** 面板。
+启动 Revit 后，功能区会出现独立的 **Bulico** 选项卡，面板分为 **建模**、**注释**、**效率**、**其他** 四组。
 
 ## Project Structure / 项目结构
 
@@ -89,6 +89,7 @@ Bulico/
 │   ├── BeamTypeSelector.xaml/.cs
 │   ├── DimTypeSelector.xaml/.cs
 │   ├── FilterDialog.xaml/.cs
+│   ├── FloorSettingsDialog.xaml/.cs
 │   ├── MullionWindow.xaml/.cs
 │   └── WallTypeSelector.xaml/.cs
 ├── Utils/                       # Utility classes

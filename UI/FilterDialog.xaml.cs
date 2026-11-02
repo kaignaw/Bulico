@@ -207,41 +207,24 @@ namespace Bulico
             Close();
         }
 
-        private void ExpandAllRecursive(ItemsControl parent)
+        private void ExpandAllRecursive(bool expanded)
         {
-            for (int i = 0; i < parent.Items.Count; i++)
+            foreach (var cat in _categories)
             {
-                var item = parent.ItemContainerGenerator.ContainerFromIndex(i) as TreeViewItem;
-                if (item != null)
-                {
-                    item.IsExpanded = true;
-                    item.UpdateLayout();
-                    ExpandAllRecursive(item);
-                }
-            }
-        }
-
-        private void CollapseToFirstLevel(ItemsControl parent)
-        {
-            for (int i = 0; i < parent.Items.Count; i++)
-            {
-                var item = parent.ItemContainerGenerator.ContainerFromIndex(i) as TreeViewItem;
-                if (item != null)
-                {
-                    item.IsExpanded = false;
-                    item.UpdateLayout();
-                }
+                cat.IsExpanded = expanded;
+                foreach (var fam in cat.Families)
+                    fam.IsExpanded = expanded;
             }
         }
 
         private void OnExpandAll(object sender, RoutedEventArgs e)
         {
-            ExpandAllRecursive(FilterTree);
+            ExpandAllRecursive(true);
         }
 
         private void OnCollapseAll(object sender, RoutedEventArgs e)
         {
-            CollapseToFirstLevel(FilterTree);
+            ExpandAllRecursive(false);
         }
 
         private void OnCancel(object sender, RoutedEventArgs e)
@@ -258,12 +241,19 @@ namespace Bulico
     public class CategoryNode : INotifyPropertyChanged
     {
         private bool? _isChecked = false;
+        private bool _isExpanded;
         public string Name { get; }
         public ObservableCollection<FamilyNode> Families { get; }
         public bool? IsChecked
         {
             get => _isChecked;
             set { _isChecked = value; OnPropertyChanged(); }
+        }
+
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set { _isExpanded = value; OnPropertyChanged(); }
         }
 
         public CategoryNode(string name)
@@ -291,6 +281,7 @@ namespace Bulico
     public class FamilyNode : INotifyPropertyChanged
     {
         private bool? _isChecked = false;
+        private bool _isExpanded;
         public string Name { get; }
         public ObservableCollection<TypeNode> Types { get; }
         public CategoryNode ParentCategory { get; set; }
@@ -298,6 +289,12 @@ namespace Bulico
         {
             get => _isChecked;
             set { _isChecked = value; OnPropertyChanged(); }
+        }
+
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set { _isExpanded = value; OnPropertyChanged(); }
         }
 
         public FamilyNode(string name)
@@ -323,6 +320,10 @@ namespace Bulico
         public string Name { get; }
         public ElementId TypeId { get; }
         public FamilyNode ParentFamily { get; set; }
+
+        // 叶子节点不需要展开状态，仅用于满足统一的 ItemContainerStyle 绑定。
+        public bool IsExpanded { get; set; }
+
         public bool? IsChecked
         {
             get => _isChecked;

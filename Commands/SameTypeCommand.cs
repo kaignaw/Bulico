@@ -13,9 +13,8 @@ namespace Bulico
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            if (!CommandGuard.TryGetDocument(commandData, "同型过滤", out UIDocument uidoc, out Document doc))
+                return Result.Cancelled;
 
             ICollection<ElementId> selectedIds = uidoc.Selection.GetElementIds();
             if (selectedIds.Count == 0)
@@ -55,6 +54,7 @@ namespace Bulico
                 return Result.Cancelled;
             }
 
+            ICollection<ElementId> originalSelection = new List<ElementId>(uidoc.Selection.GetElementIds());
             uidoc.Selection.SetElementIds(new List<ElementId>());
 
             try
@@ -64,7 +64,8 @@ namespace Bulico
                     "框选范围以过滤同类型构件");
 
                 List<ElementId> filteredIds = picked
-                    .Where(e => MatchesAnyType(e, targetTypeIds, filterCurtainGridLines))
+                    .Where(e => SameTypeSelectionFilter.Matches(
+                        e, targetTypeIds, filterCurtainGridLines))
                     .Select(e => e.Id)
                     .ToList();
 
@@ -72,31 +73,33 @@ namespace Bulico
                 {
                     uidoc.Selection.SetElementIds(filteredIds);
                 }
+                else
+                {
+                    uidoc.Selection.SetElementIds(originalSelection);
+                    TaskDialog.Show("同型过滤", "框选范围内没有匹配的构件，已恢复原选择。");
+                }
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
+                uidoc.Selection.SetElementIds(originalSelection);
                 return Result.Cancelled;
             }
             catch (Exception ex)
             {
-                message = ex.Message;
+                uidoc.Selection.SetElementIds(originalSelection);
+                ErrorReporter.Show("同型过滤", "过滤构件失败，已恢复原选择。", ex);
+                message = "过滤构件失败，请查看本地日志。";
                 return Result.Failed;
             }
 
             return Result.Succeeded;
         }
-
-        private bool MatchesAnyType(Element element, HashSet<ElementId> targetTypeIds, bool filterCurtainGridLines)
-        {
-            if (element is CurtainGridLine)
-                return filterCurtainGridLines;
-            if (element is ElementType et)
-                return targetTypeIds.Contains(et.Id);
-            ElementId typeId = element.GetTypeId();
-            return typeId != ElementId.InvalidElementId && targetTypeIds.Contains(typeId);
-        }
     }
 
+    /// <summary>
+    /// “同型”判定：幕墙网格线按开关放行，类型元素按自身 Id 匹配，其余按类型 Id 匹配。
+    /// 选择过滤器与框选后的最终过滤共用这一份逻辑，避免“能选中但结果不符”。
+    /// </summary>
     public class SameTypeSelectionFilter : ISelectionFilter
     {
         private readonly HashSet<ElementId> _targetTypeIds;
@@ -110,17 +113,28 @@ namespace Bulico
 
         public bool AllowElement(Element elem)
         {
-            if (elem is CurtainGridLine)
-                return _filterCurtainGridLines;
-            if (elem is ElementType et)
-                return _targetTypeIds.Contains(et.Id);
-            ElementId typeId = elem.GetTypeId();
-            return typeId != ElementId.InvalidElementId && _targetTypeIds.Contains(typeId);
+            return Matches(elem, _targetTypeIds, _filterCurtainGridLines);
         }
 
         public bool AllowReference(Reference reference, XYZ position)
         {
             return false;
+        }
+
+        public static bool Matches(
+            Element element, HashSet<ElementId> targetTypeIds, bool filterCurtainGridLines)
+        {
+            if (element == null)
+                return false;
+
+            if (element is CurtainGridLine)
+                return filterCurtainGridLines;
+
+            if (element is ElementType type)
+                return targetTypeIds.Contains(type.Id);
+
+            ElementId typeId = element.GetTypeId();
+            return typeId != ElementId.InvalidElementId && targetTypeIds.Contains(typeId);
         }
     }
 }

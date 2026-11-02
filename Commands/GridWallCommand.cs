@@ -12,12 +12,12 @@ namespace Bulico
     public class GridWallCommand : IExternalCommand
     {
         private static ElementId _lastWallTypeId = null;
+        private static string _lastWallDocKey = null;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            if (!CommandGuard.TryGetDocument(commandData, "框轴生墙", out UIDocument uidoc, out Document doc))
+                return Result.Cancelled;
 
             try
             {
@@ -51,6 +51,9 @@ namespace Bulico
                 }
 
                 GridSelectionFilter gridFilter = new GridSelectionFilter();
+                HashSet<string> createdWallKeys = new HashSet<string>();
+                int createdCount = 0;
+                int skippedDuplicateCount = 0;
 
                 while (true)
                 {
@@ -68,7 +71,10 @@ namespace Bulico
                     List<Grid> selectedGrids = picked.OfType<Grid>().ToList();
 
                     if (selectedGrids.Count < 2)
+                    {
+                        TaskDialog.Show("框轴生墙", "请至少框选两条轴网。命令已结束。");
                         break;
+                    }
 
                     List<XYZ> intersectionPoints = new List<XYZ>();
                     HashSet<string> seen = new HashSet<string>();
@@ -102,7 +108,10 @@ namespace Bulico
                     }
 
                     if (intersectionPoints.Count < 2)
+                    {
+                        TaskDialog.Show("框轴生墙", "所选轴网没有形成足够的交点，请重新框选。");
                         continue;
+                    }
 
                     XYZ farPt1 = null, farPt2 = null;
                     double maxDist = 0;
@@ -121,8 +130,28 @@ namespace Bulico
                         }
                     }
 
+                    if (farPt1 == null || farPt2 == null)
+                    {
+                        TaskDialog.Show("框轴生墙", "无法确定轴网交点范围，请重新框选。");
+                        continue;
+                    }
+
+                    if (farPt1.DistanceTo(farPt2) < doc.Application.ShortCurveTolerance)
+                    {
+                        TaskDialog.Show("框轴生墙", "轴网交点距离过小，无法生成墙体，请重新框选。");
+                        continue;
+                    }
+
+                    string wallKey = BuildLineKey(farPt1, farPt2);
+                    if (!createdWallKeys.Add(wallKey))
+                    {
+                        skippedDuplicateCount++;
+                        continue;
+                    }
+
                     using (Transaction trans = new Transaction(doc, "反选轴网生成墙"))
                     {
+                        TransactionUtil.Prepare(trans, false);
                         trans.Start();
 
                         XYZ start = new XYZ(farPt1.X, farPt1.Y, 0);
@@ -140,22 +169,41 @@ namespace Bulico
 
                         trans.Commit();
                     }
+
+                    createdCount++;
                 }
 
+                if (createdCount == 0 && skippedDuplicateCount == 0)
+                    return Result.Cancelled;
+
+                string summary = string.Format("已生成 {0} 面墙体。", createdCount);
+                if (skippedDuplicateCount > 0)
+                    summary += string.Format("\n跳过 {0} 组重复框选。", skippedDuplicateCount);
+
+                TaskDialog.Show("框轴生墙", summary);
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
-                message = ex.Message;
+                ErrorReporter.Show("框轴生墙", "生成墙体失败，本次操作未保存。", ex);
+                message = "生成墙体失败，请查看本地日志。";
                 return Result.Failed;
             }
+        }
+
+        private static string BuildLineKey(XYZ p1, XYZ p2)
+        {
+            string a = string.Format("{0:F3},{1:F3}", p1.X, p1.Y);
+            string b = string.Format("{0:F3},{1:F3}", p2.X, p2.Y);
+            return string.CompareOrdinal(a, b) <= 0 ? a + "|" + b : b + "|" + a;
         }
 
         private WallType SelectWallType(Document doc)
         {
             WallType preselectedType = null;
+            string docKey = DocumentScope.Key(doc);
 
-            if (_lastWallTypeId != null)
+            if (_lastWallTypeId != null && _lastWallDocKey == docKey)
             {
                 Element elem = doc.GetElement(_lastWallTypeId);
                 if (elem is WallType wt)
@@ -166,7 +214,10 @@ namespace Bulico
             dialog.ShowDialog();
 
             if (dialog.SelectedWallType != null)
+            {
                 _lastWallTypeId = dialog.SelectedWallType.Id;
+                _lastWallDocKey = docKey;
+            }
 
             return dialog.SelectedWallType;
         }

@@ -13,9 +13,8 @@ namespace Bulico
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            if (!CommandGuard.TryGetDocument(commandData, "类别过滤", out UIDocument uidoc, out Document doc))
+                return Result.Cancelled;
 
             ICollection<ElementId> selectedIds = uidoc.Selection.GetElementIds();
             if (selectedIds.Count == 0)
@@ -39,6 +38,7 @@ namespace Bulico
                 return Result.Cancelled;
             }
 
+            ICollection<ElementId> originalSelection = new List<ElementId>(uidoc.Selection.GetElementIds());
             uidoc.Selection.SetElementIds(new List<ElementId>());
 
             try
@@ -56,14 +56,22 @@ namespace Bulico
                 {
                     uidoc.Selection.SetElementIds(filteredIds);
                 }
+                else
+                {
+                    uidoc.Selection.SetElementIds(originalSelection);
+                    TaskDialog.Show("类别过滤", "框选范围内没有匹配的构件，已恢复原选择。");
+                }
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
+                uidoc.Selection.SetElementIds(originalSelection);
                 return Result.Cancelled;
             }
             catch (Exception ex)
             {
-                message = ex.Message;
+                uidoc.Selection.SetElementIds(originalSelection);
+                ErrorReporter.Show("类别过滤", "过滤构件失败，已恢复原选择。", ex);
+                message = "过滤构件失败，请查看本地日志。";
                 return Result.Failed;
             }
 

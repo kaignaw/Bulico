@@ -24,6 +24,11 @@
             <TreeView x:Name="FilterTree" Grid.Column="0"
                       VirtualizingPanel.IsVirtualizing="False"
                       BorderBrush="#CCC" BorderThickness="1">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local:CategoryNode}" ItemsSource="{Binding Families}">
                         <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked}"

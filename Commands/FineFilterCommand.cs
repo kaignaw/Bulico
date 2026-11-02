@@ -14,9 +14,8 @@ namespace Bulico
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            if (!CommandGuard.TryGetDocument(commandData, "精细过滤", out UIDocument uidoc, out Document doc))
+                return Result.Cancelled;
 
             ICollection<ElementId> selectedIds = uidoc.Selection.GetElementIds();
             if (selectedIds.Count == 0)

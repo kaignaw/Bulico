@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
@@ -14,16 +12,10 @@ namespace Bulico
     [Transaction(TransactionMode.Manual)]
     public class WallBeamFloorCommand : IExternalCommand
     {
-        private static ElementId prevFloorTypeId = null;
-        private static ElementId prevLevelId = null;
-        private static double prevOffset = 0.0;
-        private static bool prevUseCenterline = true;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            if (!CommandGuard.TryGetDocument(commandData, "墙梁建板", out UIDocument uidoc, out Document doc))
+                return Result.Cancelled;
 
             FilteredElementCollector floorTypeCollector = new FilteredElementCollector(doc)
                 .OfClass(typeof(FloorType));
@@ -47,13 +39,17 @@ namespace Bulico
                 return Result.Cancelled;
             }
 
-            FloorType selectedType = null;
-            Level selectedLevel = null;
-            double selectedOffset = 0.0;
-            bool useCenterlineMode = true;
-            if (!ShowSelectionWindow(floorTypes, levels, out selectedType, out selectedLevel, out selectedOffset, out useCenterlineMode))
+            FloorSettings settings = FloorSettingsDialog.Show(
+                doc, "墙梁建板", floorTypes, levels, showModeOption: true);
+            if (settings == null)
                 return Result.Cancelled;
 
+            FloorType selectedType = settings.FloorType;
+            Level selectedLevel = settings.Level;
+            double selectedOffset = settings.OffsetMeters;
+            bool useCenterlineMode = settings.UseCenterline;
+
+            ProgressWindow progress = null;
             try
             {
                 IList<Reference> selectedRefs = uidoc.Selection.PickObjects(
@@ -84,11 +80,29 @@ namespace Bulico
                     return Result.Cancelled;
                 }
 
+                if (curves.Count > InputLimits.MaxRegionCurves)
+                {
+                    TaskDialog.Show(
+                        "墙梁建板",
+                        string.Format(
+                            "单次最多处理 {0} 条墙/梁线，当前选择了 {1} 条。请分批处理。",
+                            InputLimits.MaxRegionCurves,
+                            curves.Count));
+                    return Result.Cancelled;
+                }
+
+                progress = new ProgressWindow("墙梁建板");
+                progress.Show();
+                progress.SetText("正在计算闭合区域...");
+                progress.Pump();
+
                 List<CurveLoop> regions = RegionFinder.FindClosedRegions(
                     curves, doc.Application.ShortCurveTolerance);
 
                 if (regions.Count == 0)
                 {
+                    progress.Finish();
+
                     TaskDialog.Show("墙梁建板", "未找到任何闭合区域！请确保墙或梁围成了封闭空间。");
                     return Result.Cancelled;
                 }
@@ -118,14 +132,15 @@ namespace Bulico
                     }
                 }
 
-                ProgressWindow progress = new ProgressWindow("墙梁建板");
-                progress.Show();
-                progress.SetText("正在计算闭合区域...");
-                progress.Pump();
+                progress.SetText("正在创建楼板...");
 
                 int count = 0;
+                bool createFailed = false;
+                Exception createException = null;
+
                 using (Transaction trans = new Transaction(doc, "墙梁建板"))
                 {
+                    TransactionUtil.Prepare(trans, false);
                     trans.Start();
                     progress.SetRange(regions.Count);
                     for (int fi = 0; fi < regions.Count; fi++)
@@ -137,30 +152,59 @@ namespace Bulico
                                 new List<CurveLoop> { regions[fi] },
                                 selectedType.Id,
                                 selectedLevel.Id);
-                            if (floor != null)
-                            {
-                                floor.get_Parameter(
-                                    BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
-                                    .Set(UnitUtils.ConvertToInternalUnits(selectedOffset, UnitTypeId.Meters));
-                            }
+                            if (floor == null)
+                                throw new InvalidOperationException("楼板创建失败。");
+
+                            Parameter offsetParam = floor.get_Parameter(
+                                BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
+                            if (offsetParam != null)
+                                offsetParam.Set(UnitUtils.ConvertToInternalUnits(selectedOffset, UnitTypeId.Meters));
+
                             count++;
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
+                            createFailed = true;
+                            createException = ex;
+                            break;
                         }
                         progress.Update(fi + 1, regions.Count);
-                        progress.Pump();
                     }
-                    trans.Commit();
+
+                    if (createFailed)
+                        trans.RollBack();
+                    else
+                        trans.Commit();
                 }
 
-                progress.Close();
-                TaskDialog.Show("墙梁建板", string.Format("成功创建 {0} 个楼板！\n未成功创建 {1} 个。", count, regions.Count - count));
+                progress.Finish();
+
+                if (createFailed)
+                {
+                    if (createException != null)
+                        ErrorReporter.Log("墙梁建板", createException);
+
+                    TaskDialog.Show("墙梁建板", "创建楼板失败，本次操作已全部回滚。\n\n详细信息已写入本地日志：\n" + ErrorReporter.LogPath);
+                    return Result.Failed;
+                }
+
+                TaskDialog.Show("墙梁建板", string.Format("成功创建 {0} 个楼板！", count));
                 return Result.Succeeded;
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
                 return Result.Cancelled;
+            }
+            catch (Exception ex)
+            {
+                ErrorReporter.Show("墙梁建板", "墙梁建板失败，本次操作未保存。", ex);
+                message = "墙梁建板失败，请查看本地日志。";
+                return Result.Failed;
+            }
+            finally
+            {
+                if (progress != null)
+                    progress.Dispose();
             }
         }
 
@@ -212,199 +256,6 @@ namespace Bulico
             return null;
         }
 
-        private bool ShowSelectionWindow(
-            List<FloorType> floorTypes,
-            List<Level> levels,
-            out FloorType selectedType,
-            out Level selectedLevel,
-            out double selectedOffset,
-            out bool useCenterlineMode)
-        {
-            selectedType = null;
-            selectedLevel = null;
-            selectedOffset = 0.0;
-            useCenterlineMode = true;
-
-            FloorType localType = null;
-            Level localLevel = null;
-            double localOffset = 0.0;
-            bool localCenterline = true;
-
-            System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
-            grid.Margin = new Thickness(12);
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-            Label typeLabel = new Label
-            {
-                Content = "楼板类型：", VerticalAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(typeLabel, 0);
-            System.Windows.Controls.Grid.SetColumn(typeLabel, 0);
-
-            System.Windows.Controls.ComboBox typeCombo = new System.Windows.Controls.ComboBox
-            {
-                Margin = new Thickness(4, 4, 0, 4),
-                DisplayMemberPath = "Name",
-                ItemsSource = floorTypes
-            };
-            if (prevFloorTypeId != null)
-            {
-                int idx = floorTypes.FindIndex(ft => ft.Id == prevFloorTypeId);
-                if (idx >= 0) typeCombo.SelectedIndex = idx; else typeCombo.SelectedIndex = 0;
-            }
-            else if (floorTypes.Count > 0) typeCombo.SelectedIndex = 0;
-            System.Windows.Controls.Grid.SetRow(typeCombo, 0);
-            System.Windows.Controls.Grid.SetColumn(typeCombo, 1);
-
-            Label levelLabel = new Label
-            {
-                Content = "标高：", VerticalAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(levelLabel, 1);
-            System.Windows.Controls.Grid.SetColumn(levelLabel, 0);
-
-            System.Windows.Controls.ComboBox levelCombo = new System.Windows.Controls.ComboBox
-            {
-                Margin = new Thickness(4, 4, 0, 4),
-                DisplayMemberPath = "Name",
-                ItemsSource = levels
-            };
-            if (prevLevelId != null)
-            {
-                int idx = levels.FindIndex(lv => lv.Id == prevLevelId);
-                if (idx >= 0) levelCombo.SelectedIndex = idx; else levelCombo.SelectedIndex = 0;
-            }
-            else if (levels.Count > 0) levelCombo.SelectedIndex = 0;
-            System.Windows.Controls.Grid.SetRow(levelCombo, 1);
-            System.Windows.Controls.Grid.SetColumn(levelCombo, 1);
-
-            Label offsetLabel = new Label
-            {
-                Content = "标高偏移（m）：", VerticalAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(offsetLabel, 2);
-            System.Windows.Controls.Grid.SetColumn(offsetLabel, 0);
-
-            System.Windows.Controls.TextBox offsetBox = new System.Windows.Controls.TextBox
-            {
-                Text = prevOffset.ToString("F3"),
-                Margin = new Thickness(4, 4, 0, 4),
-                Height = 22,
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(offsetBox, 2);
-            System.Windows.Controls.Grid.SetColumn(offsetBox, 1);
-
-            Label modeLabel = new Label
-            {
-                Content = "生成方式：", VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 6, 0, 0)
-            };
-            System.Windows.Controls.Grid.SetRow(modeLabel, 3);
-            System.Windows.Controls.Grid.SetColumn(modeLabel, 0);
-
-            RadioButton centerlineRadio = new RadioButton
-            {
-                Content = "墙梁中心线", IsChecked = prevUseCenterline,
-                Margin = new Thickness(4, 4, 0, 2), GroupName = "mode"
-            };
-            RadioButton innerRadio = new RadioButton
-            {
-                Content = "墙梁内边线", IsChecked = !prevUseCenterline,
-                Margin = new Thickness(4, 2, 0, 4), GroupName = "mode"
-            };
-            StackPanel modePanel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(0, 2, 0, 0) };
-            modePanel.Children.Add(centerlineRadio);
-            modePanel.Children.Add(innerRadio);
-            System.Windows.Controls.Grid.SetRow(modePanel, 3);
-            System.Windows.Controls.Grid.SetColumn(modePanel, 1);
-
-            StackPanel buttonPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 6, 0, 0)
-            };
-
-            Button okButton = new Button
-            {
-                Content = "确定", Width = 80, Height = 28, Margin = new Thickness(0, 0, 8, 0), IsDefault = true
-            };
-            Button cancelButton = new Button
-            {
-                Content = "取消", Width = 80, Height = 28, IsCancel = true
-            };
-            buttonPanel.Children.Add(okButton);
-            buttonPanel.Children.Add(cancelButton);
-
-            System.Windows.Controls.Grid.SetRow(buttonPanel, 4);
-            System.Windows.Controls.Grid.SetColumnSpan(buttonPanel, 2);
-
-            bool result = false;
-            Window window = new Window
-            {
-                Title = "墙梁建板",
-                Width = 380,
-                SizeToContent = SizeToContent.Height,
-                WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                ResizeMode = ResizeMode.NoResize,
-                Content = grid
-            };
-
-            okButton.Click += (s, e) =>
-            {
-                FloorType ft = typeCombo.SelectedItem as FloorType;
-                Level lv = levelCombo.SelectedItem as Level;
-                if (ft == null || lv == null)
-                {
-                    MessageBox.Show("请选择楼板类型和标高。", "提示");
-                    return;
-                }
-                double val;
-                if (!double.TryParse(offsetBox.Text, out val))
-                {
-                    MessageBox.Show("标高偏移请输入有效数值。", "提示");
-                    return;
-                }
-                localType = ft;
-                localLevel = lv;
-                localOffset = val;
-                localCenterline = centerlineRadio.IsChecked == true;
-                prevFloorTypeId = ft.Id;
-                prevLevelId = lv.Id;
-                prevOffset = val;
-                prevUseCenterline = localCenterline;
-                result = true;
-                window.Close();
-            };
-
-            cancelButton.Click += (s, e) => { window.Close(); };
-
-            grid.Children.Add(typeLabel);
-            grid.Children.Add(typeCombo);
-            grid.Children.Add(levelLabel);
-            grid.Children.Add(levelCombo);
-            grid.Children.Add(offsetLabel);
-            grid.Children.Add(offsetBox);
-            grid.Children.Add(modeLabel);
-            grid.Children.Add(modePanel);
-            grid.Children.Add(buttonPanel);
-
-            window.ShowDialog();
-
-            selectedType = localType;
-            selectedLevel = localLevel;
-            selectedOffset = localOffset;
-            useCenterlineMode = localCenterline;
-            return result;
-        }
-
         private double ComputeAverageHalfThickness(IList<Reference> refs, Document doc)
         {
             double total = 0;
@@ -422,12 +273,16 @@ namespace Bulico
                 FamilyInstance fi = e as FamilyInstance;
                 if (fi != null && fi.StructuralType == StructuralType.Beam)
                 {
+                    FamilySymbol symbol = fi.Symbol;
+                    if (symbol == null)
+                        continue;
+
                     double bw = 0;
-                    Parameter p = fi.Symbol.LookupParameter("B");
+                    Parameter p = symbol.LookupParameter("B");
                     if (p != null) bw = p.AsDouble();
                     if (bw < doc.Application.ShortCurveTolerance)
                     {
-                        Parameter p2 = fi.Symbol.LookupParameter("b");
+                        Parameter p2 = symbol.LookupParameter("b");
                         if (p2 != null) bw = p2.AsDouble();
                     }
                     if (bw > doc.Application.ShortCurveTolerance)

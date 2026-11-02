@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
@@ -14,15 +12,10 @@ namespace Bulico
     [Transaction(TransactionMode.Manual)]
     public class RoomFloorCommand : IExternalCommand
     {
-        private static ElementId prevFloorTypeId = null;
-        private static ElementId prevLevelId = null;
-        private static double prevOffset = 0.0;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            if (!CommandGuard.TryGetDocument(commandData, "房间建板", out UIDocument uidoc, out Document doc))
+                return Result.Cancelled;
 
             FilteredElementCollector floorTypeCollector = new FilteredElementCollector(doc)
                 .OfClass(typeof(FloorType));
@@ -46,11 +39,14 @@ namespace Bulico
                 return Result.Cancelled;
             }
 
-            FloorType selectedType = null;
-            Level selectedLevel = null;
-            double selectedOffset = 0.0;
-            if (!ShowSelectionWindow(floorTypes, levels, out selectedType, out selectedLevel, out selectedOffset))
+            FloorSettings settings = FloorSettingsDialog.Show(
+                doc, "房间建板", floorTypes, levels, showModeOption: false);
+            if (settings == null)
                 return Result.Cancelled;
+
+            FloorType selectedType = settings.FloorType;
+            Level selectedLevel = settings.Level;
+            double selectedOffset = settings.OffsetMeters;
 
             ProgressWindow progress = null;
             try
@@ -67,10 +63,11 @@ namespace Bulico
                 }
 
                 List<Room> rooms = new List<Room>();
+                HashSet<ElementId> seenRoomIds = new HashSet<ElementId>();
                 foreach (Reference selRef in selectedRefs)
                 {
                     Room room = doc.GetElement(selRef) as Room;
-                    if (room != null)
+                    if (room != null && seenRoomIds.Add(room.Id))
                         rooms.Add(room);
                 }
 
@@ -84,8 +81,17 @@ namespace Bulico
                 boundaryOptions.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
 
                 int successCount = 0;
-                int failCount = 0;
+                int skippedExistingCount = 0;
                 Dictionary<ElementId, List<CurveArray>> roomHolesMap = new Dictionary<ElementId, List<CurveArray>>();
+
+                // 目标标高上已有的楼板只收集一次，用于避免重复创建重叠楼板。
+                double selectedOffsetFeet = UnitUtils.ConvertToInternalUnits(selectedOffset, UnitTypeId.Meters);
+                List<Floor> existingFloors = new FilteredElementCollector(doc)
+                    .OfClass(typeof(Floor))
+                    .Cast<Floor>()
+                    .Where(f => f.LevelId == selectedLevel.Id &&
+                                Math.Abs(GetFloorHeightAboveLevel(f) - selectedOffsetFeet) <= 0.003)
+                    .ToList();
 
                 progress = new ProgressWindow("房间建板");
                 progress.Show();
@@ -95,319 +101,289 @@ namespace Bulico
                 int totalSteps = rooms.Count;
                 int currentStep = 0;
 
-                using (Transaction trans = new Transaction(doc, "房间建板"))
+                TransactionGroup group = new TransactionGroup(doc, "房间建板");
+                bool groupActive = false;
+                bool createFailed = false;
+                Exception createException = null;
+
+                try
                 {
-                    FailureHandlingOptions options = trans.GetFailureHandlingOptions();
-                    options.SetFailuresPreprocessor(new OverlapWarningSuppressor());
-                    trans.SetFailureHandlingOptions(options);
-                    trans.Start();
+                    group.Start();
+                    groupActive = true;
 
-                    progress.SetRange(totalSteps);
-
-                    foreach (Room room in rooms)
+                    using (Transaction trans = new Transaction(doc, "房间建板"))
                     {
-                        currentStep++;
-                        progress.Update(currentStep, totalSteps);
-                        progress.Pump();
-                        try
+                        TransactionUtil.Prepare(trans, true);
+                        trans.Start();
+
+                        progress.SetRange(totalSteps);
+
+                        foreach (Room room in rooms)
                         {
-                            IList<IList<BoundarySegment>> boundarySegments = room.GetBoundarySegments(boundaryOptions);
-                            if (boundarySegments == null || boundarySegments.Count == 0)
-                            {
-                                failCount++;
-                                continue;
-                            }
+                            currentStep++;
+                            progress.Update(currentStep, totalSteps);
 
-                            CurveLoop outerProfile = new CurveLoop();
-                            foreach (BoundarySegment seg in boundarySegments[0])
+                            try
                             {
-                                outerProfile.Append(seg.GetCurve());
-                            }
-
-                            Floor floor = Floor.Create(
-                                doc,
-                                new List<CurveLoop> { outerProfile },
-                                selectedType.Id,
-                                selectedLevel.Id);
-                            if (floor == null)
-                            {
-                                failCount++;
-                                continue;
-                            }
-
-                            floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM)
-                                .Set(UnitUtils.ConvertToInternalUnits(selectedOffset, UnitTypeId.Meters));
-
-                            List<CurveArray> holeProfiles = new List<CurveArray>();
-                            for (int hi = 1; hi < boundarySegments.Count; hi++)
-                            {
-                                CurveArray holeProfile = new CurveArray();
-                                foreach (BoundarySegment seg in boundarySegments[hi])
+                                if (HasExistingFloor(existingFloors, room.get_BoundingBox(null),
+                                        doc.Application.ShortCurveTolerance))
                                 {
-                                    holeProfile.Append(seg.GetCurve());
+                                    skippedExistingCount++;
+                                    continue;
                                 }
-                                holeProfiles.Add(holeProfile);
+
+                                IList<IList<BoundarySegment>> boundarySegments = room.GetBoundarySegments(boundaryOptions);
+                                if (boundarySegments == null || boundarySegments.Count == 0)
+                                {
+                                    createFailed = true;
+                                    throw new InvalidOperationException("房间缺少有效边界。");
+                                }
+
+                                CurveLoop outerProfile = new CurveLoop();
+                                foreach (BoundarySegment seg in boundarySegments[0])
+                                {
+                                    outerProfile.Append(seg.GetCurve());
+                                }
+
+                                Floor floor = Floor.Create(
+                                    doc,
+                                    new List<CurveLoop> { outerProfile },
+                                    selectedType.Id,
+                                    selectedLevel.Id);
+                                if (floor == null)
+                                {
+                                    createFailed = true;
+                                    throw new InvalidOperationException("楼板创建失败。");
+                                }
+
+                                Parameter offsetParam = floor.get_Parameter(
+                                    BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
+                                if (offsetParam != null)
+                                    offsetParam.Set(UnitUtils.ConvertToInternalUnits(selectedOffset, UnitTypeId.Meters));
+
+                                List<CurveArray> holeProfiles = new List<CurveArray>();
+                                for (int hi = 1; hi < boundarySegments.Count; hi++)
+                                {
+                                    CurveArray holeProfile = new CurveArray();
+                                    foreach (BoundarySegment seg in boundarySegments[hi])
+                                    {
+                                        holeProfile.Append(seg.GetCurve());
+                                    }
+                                    holeProfiles.Add(holeProfile);
+                                }
+
+                                ElementId floorId = floor.Id;
+                                roomHolesMap[floorId] = holeProfiles;
+
+                                successCount++;
                             }
-
-                            ElementId floorId = floor.Id;
-                            roomHolesMap[floorId] = holeProfiles;
-
-                            successCount++;
-                        }
-                        catch (Exception)
-                        {
-                            failCount++;
-                        }
-                    }
-
-                    trans.Commit();
-                }
-
-                if (roomHolesMap.Count > 0)
-                {
-                    progress.SetText("正在添加洞口...");
-                    progress.Pump();
-
-                    int totalHoles = 0;
-                    foreach (var kvp in roomHolesMap)
-                        totalHoles += kvp.Value.Count;
-
-                    using (Transaction holeTrans = new Transaction(doc, "房间建板-开洞"))
-                    {
-                        FailureHandlingOptions holeOptions = holeTrans.GetFailureHandlingOptions();
-                        holeOptions.SetFailuresPreprocessor(new OverlapWarningSuppressor());
-                        holeTrans.SetFailureHandlingOptions(holeOptions);
-                        holeTrans.Start();
-
-                        progress.SetRange(totalHoles);
-                        int holeIndex = 0;
-
-                        foreach (var kvp in roomHolesMap)
-                        {
-                            Floor floor = doc.GetElement(kvp.Key) as Floor;
-                            if (floor == null) continue;
-                            foreach (CurveArray holeProfile in kvp.Value)
+                            catch (Exception ex)
                             {
-                                doc.Create.NewOpening(floor, holeProfile, true);
-                                holeIndex++;
-                                progress.Update(holeIndex, totalHoles);
-                                progress.Pump();
+                                createFailed = true;
+                                createException = ex;
+                                break;
                             }
                         }
-                        holeTrans.Commit();
+
+                        if (createFailed)
+                            trans.RollBack();
+                        else
+                            trans.Commit();
                     }
+
+                    if (createFailed)
+                    {
+                        progress.SetText("创建失败，正在回滚...");
+                        progress.Pump();
+                        group.RollBack();
+                        groupActive = false;
+
+                        if (createException != null)
+                            ErrorReporter.Log("房间建板", createException);
+
+                        progress.Finish();
+
+                        TaskDialog.Show("房间建板", "房间建板失败，本次操作已全部回滚。\n\n详细信息已写入本地日志：\n" + ErrorReporter.LogPath);
+                        return Result.Failed;
+                    }
+
+                    if (roomHolesMap.Count > 0)
+                    {
+                        progress.SetText("正在添加洞口...");
+                        progress.Pump();
+
+                        int totalHoles = 0;
+                        foreach (var kvp in roomHolesMap)
+                            totalHoles += kvp.Value.Count;
+
+                        bool holeFailed = false;
+                        Exception holeException = null;
+
+                        using (Transaction holeTrans = new Transaction(doc, "房间建板-开洞"))
+                        {
+                            TransactionUtil.Prepare(holeTrans, true);
+                            holeTrans.Start();
+
+                            progress.SetRange(totalHoles);
+                            int holeIndex = 0;
+
+                            try
+                            {
+                                foreach (var kvp in roomHolesMap)
+                                {
+                                    Floor floor = doc.GetElement(kvp.Key) as Floor;
+                                    if (floor == null)
+                                        continue;
+
+                                    foreach (CurveArray holeProfile in kvp.Value)
+                                    {
+                                        doc.Create.NewOpening(floor, holeProfile, true);
+                                        holeIndex++;
+                                        progress.Update(holeIndex, totalHoles);
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                holeFailed = true;
+                                holeException = ex;
+                            }
+
+                            if (holeFailed)
+                                holeTrans.RollBack();
+                            else
+                                holeTrans.Commit();
+                        }
+
+                        if (holeFailed)
+                        {
+                            progress.SetText("添加洞口失败，正在回滚...");
+                            progress.Pump();
+                            group.RollBack();
+                            groupActive = false;
+
+                            if (holeException != null)
+                                ErrorReporter.Log("房间建板-开洞", holeException);
+
+                            progress.Finish();
+
+                            TaskDialog.Show("房间建板", "添加洞口失败，本次操作已全部回滚。\n\n详细信息已写入本地日志：\n" + ErrorReporter.LogPath);
+                            return Result.Failed;
+                        }
+                    }
+
+                    group.Assimilate();
+                    groupActive = false;
+                }
+                finally
+                {
+                    if (groupActive)
+                    {
+                        try { group.RollBack(); } catch { }
+                    }
+                    group.Dispose();
                 }
 
-                progress.Close();
-                TaskDialog.Show("房间建板", string.Format("成功创建 {0} 个房间的楼板！\n未成功创建 {1} 个。", successCount, failCount));
+                progress.Finish();
+
+                string summary;
+                if (successCount > 0)
+                {
+                    summary = string.Format("成功创建 {0} 个房间的楼板！", successCount);
+                }
+                else
+                {
+                    summary = "未创建新的楼板。";
+                }
+
+                if (skippedExistingCount > 0)
+                {
+                    summary += string.Format(
+                        "\n跳过 {0} 个在目标标高上已有楼板的房间。",
+                        skippedExistingCount);
+                }
+
+                TaskDialog.Show("房间建板", summary);
                 return Result.Succeeded;
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
             {
                 return Result.Cancelled;
             }
+            catch (Exception ex)
+            {
+                ErrorReporter.Show("房间建板", "房间建板失败，本次操作未保存。", ex);
+                message = "房间建板失败，请查看本地日志。";
+                return Result.Failed;
+            }
             finally
             {
                 if (progress != null)
-                {
-                    try { progress.Close(); } catch { }
-                }
+                    progress.Dispose();
             }
         }
 
-        private bool ShowSelectionWindow(
-            List<FloorType> floorTypes,
-            List<Level> levels,
-            out FloorType selectedType,
-            out Level selectedLevel,
-            out double selectedOffset)
+        private static double GetFloorHeightAboveLevel(Floor floor)
         {
-            selectedType = null;
-            selectedLevel = null;
-            selectedOffset = 0.0;
+            Parameter param = floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
+            return param != null ? param.AsDouble() : 0.0;
+        }
 
-            FloorType localType = null;
-            Level localLevel = null;
-            double localOffset = 0.0;
+        private static bool HasExistingFloor(
+            List<Floor> existingFloors,
+            BoundingBoxXYZ roomBox,
+            double tolerance)
+        {
+            if (roomBox == null)
+                return false;
 
-            System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
-            grid.Margin = new Thickness(12);
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            foreach (Floor floor in existingFloors)
+            {
+                BoundingBoxXYZ floorBox = floor.get_BoundingBox(null);
+                if (floorBox == null)
+                    continue;
 
-            Label typeLabel = new Label
-            {
-                Content = "楼板类型：",
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(typeLabel, 0);
-            System.Windows.Controls.Grid.SetColumn(typeLabel, 0);
-
-            System.Windows.Controls.ComboBox typeCombo = new System.Windows.Controls.ComboBox
-            {
-                Margin = new Thickness(4, 4, 0, 4),
-                DisplayMemberPath = "Name",
-                ItemsSource = floorTypes
-            };
-            if (prevFloorTypeId != null)
-            {
-                int idx = floorTypes.FindIndex(ft => ft.Id == prevFloorTypeId);
-                if (idx >= 0) typeCombo.SelectedIndex = idx;
-                else if (floorTypes.Count > 0) typeCombo.SelectedIndex = 0;
-            }
-            else if (floorTypes.Count > 0) typeCombo.SelectedIndex = 0;
-            System.Windows.Controls.Grid.SetRow(typeCombo, 0);
-            System.Windows.Controls.Grid.SetColumn(typeCombo, 1);
-
-            Label levelLabel = new Label
-            {
-                Content = "标高：",
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(levelLabel, 1);
-            System.Windows.Controls.Grid.SetColumn(levelLabel, 0);
-
-            System.Windows.Controls.ComboBox levelCombo = new System.Windows.Controls.ComboBox
-            {
-                Margin = new Thickness(4, 4, 0, 4),
-                DisplayMemberPath = "Name",
-                ItemsSource = levels
-            };
-            if (prevLevelId != null)
-            {
-                int idx = levels.FindIndex(lv => lv.Id == prevLevelId);
-                if (idx >= 0) levelCombo.SelectedIndex = idx;
-                else if (levels.Count > 0) levelCombo.SelectedIndex = 0;
-            }
-            else if (levels.Count > 0) levelCombo.SelectedIndex = 0;
-            System.Windows.Controls.Grid.SetRow(levelCombo, 1);
-            System.Windows.Controls.Grid.SetColumn(levelCombo, 1);
-
-            Label offsetLabel = new Label
-            {
-                Content = "标高偏移（m）：",
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(offsetLabel, 2);
-            System.Windows.Controls.Grid.SetColumn(offsetLabel, 0);
-
-            System.Windows.Controls.TextBox offsetBox = new System.Windows.Controls.TextBox
-            {
-                Text = prevOffset.ToString("F3"),
-                Margin = new Thickness(4, 4, 0, 4),
-                Height = 22,
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
-            System.Windows.Controls.Grid.SetRow(offsetBox, 2);
-            System.Windows.Controls.Grid.SetColumn(offsetBox, 1);
-
-            Button okButton = new Button
-            {
-                Content = "确定",
-                Width = 80,
-                Height = 28,
-                Margin = new Thickness(0, 0, 8, 0),
-                IsDefault = true
-            };
-            Button cancelButton = new Button
-            {
-                Content = "取消",
-                Width = 80,
-                Height = 28,
-                IsCancel = true
-            };
-            StackPanel buttonPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 10, 0, 0)
-            };
-            buttonPanel.Children.Add(okButton);
-            buttonPanel.Children.Add(cancelButton);
-            System.Windows.Controls.Grid.SetRow(buttonPanel, 3);
-            System.Windows.Controls.Grid.SetColumnSpan(buttonPanel, 2);
-
-            bool result = false;
-            Window window = new Window
-            {
-                Title = "房间建板",
-                Width = 380,
-                SizeToContent = SizeToContent.Height,
-                WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                ResizeMode = ResizeMode.NoResize,
-                Content = grid
-            };
-
-            okButton.Click += (s, e) =>
-            {
-                FloorType ft = typeCombo.SelectedItem as FloorType;
-                Level lv = levelCombo.SelectedItem as Level;
-                if (ft == null || lv == null)
+                // 只在房间轮廓完全落在已有楼板范围内时判定为“已有楼板”，
+                // 避免相邻房间的楼板被误判。
+                if (floorBox.Min.X <= roomBox.Min.X + tolerance &&
+                    floorBox.Max.X >= roomBox.Max.X - tolerance &&
+                    floorBox.Min.Y <= roomBox.Min.Y + tolerance &&
+                    floorBox.Max.Y >= roomBox.Max.Y - tolerance)
                 {
-                    MessageBox.Show("请选择楼板类型和标高。", "提示");
-                    return;
+                    return true;
                 }
-                double val;
-                if (!double.TryParse(offsetBox.Text, out val))
-                {
-                    MessageBox.Show("标高偏移请输入有效数值。", "提示");
-                    return;
-                }
-                localType = ft;
-                localLevel = lv;
-                localOffset = val;
-                prevFloorTypeId = ft.Id;
-                prevLevelId = lv.Id;
-                prevOffset = val;
-                result = true;
-                window.Close();
-            };
+            }
 
-            cancelButton.Click += (s, e) => { window.Close(); };
-
-            grid.Children.Add(typeLabel);
-            grid.Children.Add(typeCombo);
-            grid.Children.Add(levelLabel);
-            grid.Children.Add(levelCombo);
-            grid.Children.Add(offsetLabel);
-            grid.Children.Add(offsetBox);
-            grid.Children.Add(buttonPanel);
-
-            window.ShowDialog();
-
-            selectedType = localType;
-            selectedLevel = localLevel;
-            selectedOffset = localOffset;
-            return result;
+            return false;
         }
     }
 
     public class OverlapWarningSuppressor : IFailuresPreprocessor
     {
+        private readonly bool _suppressFloorOverlapWarnings;
+
+        public OverlapWarningSuppressor(bool suppressFloorOverlapWarnings = true)
+        {
+            _suppressFloorOverlapWarnings = suppressFloorOverlapWarnings;
+        }
+
         public FailureProcessingResult PreprocessFailures(FailuresAccessor failuresAccessor)
         {
             IList<FailureMessageAccessor> failures = failuresAccessor.GetFailureMessages();
             foreach (FailureMessageAccessor failure in failures)
             {
                 FailureSeverity severity = failure.GetSeverity();
-                if (severity == FailureSeverity.Warning)
+
+                // 出现 Error 时直接回滚，避免留下半成品。
+                if (severity == FailureSeverity.Error)
+                    return FailureProcessingResult.ProceedWithRollBack;
+
+                if (severity == FailureSeverity.Warning && _suppressFloorOverlapWarnings)
                 {
                     FailureDefinitionId id = failure.GetFailureDefinitionId();
                     if (id == BuiltInFailures.OverlapFailures.FloorsOverlap)
                     {
                         failuresAccessor.DeleteWarning(failure);
-                    }
-                    else
-                    {
-                        string desc = failure.GetDescriptionText();
-                        if (desc.Contains("overlap") || desc.Contains("重叠"))
-                        {
-                            failuresAccessor.DeleteWarning(failure);
-                        }
                     }
                 }
             }
