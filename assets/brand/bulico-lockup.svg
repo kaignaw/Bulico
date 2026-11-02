@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 320" role="img" aria-labelledby="title">
   <title id="title">Bulico Grid Stack logo lockup</title>
-  <g transform="translate(48 32) scale(0.5)" fill="none" stroke="#0B1727" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M112 256 256 200 400 256 256 312Z"/>
-    <path d="M112 384 256 328 400 384 256 440Z" stroke-opacity=".6"/>
-    <path d="M112 128v256M400 128v256" stroke-width="16" stroke-opacity=".4"/>
-    <path d="M112 128 256 72 400 128 256 184ZM256 104 280 128 256 152 232 128Z" fill="#14B8A6" stroke="none" fill-rule="evenodd"/>
+  <g transform="translate(48 20) scale(0.55)">
+    <g fill="none" stroke="#0B1727" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M137 249 231 223Q256 216 281 223L375 249Q400 256 375 263L281 289Q256 296 231 289L137 263Q112 256 137 249Z"/>
+      <path d="M137 349 231 323Q256 316 281 323L375 349Q400 356 375 363L281 389Q256 396 231 389L137 363Q112 356 137 349Z" stroke-opacity=".5"/>
+    </g>
+    <path d="M137 149 231 123Q256 116 281 123L375 149Q400 156 375 163L281 189Q256 196 231 189L137 163Q112 156 137 149Z" fill="#14B8A6"/>
   </g>
   <g color="#0B1727" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif">
     <text x="320" y="170" font-size="132" font-weight="700" letter-spacing="-5" fill="currentColor">Bulico</text>

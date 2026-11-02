@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
   <title id="title">Bulico Grid Stack mark, monochrome</title>
   <g fill="none" stroke="#0B1727" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M112 256 256 200 400 256 256 312Z"/>
-    <path d="M112 384 256 328 400 384 256 440Z"/>
-    <path d="M112 128v256M400 128v256" stroke-width="16"/>
+    <path d="M137 249 231 223Q256 216 281 223L375 249Q400 256 375 263L281 289Q256 296 231 289L137 263Q112 256 137 249Z"/>
+    <path d="M137 349 231 323Q256 316 281 323L375 349Q400 356 375 363L281 389Q256 396 231 389L137 363Q112 356 137 349Z"/>
   </g>
-  <path d="M112 128 256 72 400 128 256 184ZM256 104 280 128 256 152 232 128Z" fill="#0B1727" fill-rule="evenodd"/>
+  <path d="M137 149 231 123Q256 116 281 123L375 149Q400 156 375 163L281 189Q256 196 231 189L137 163Q112 156 137 149Z" fill="#0B1727"/>
 </svg>
