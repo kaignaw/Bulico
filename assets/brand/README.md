@@ -31,7 +31,7 @@ Simple vector marks for **Bulico — Revit 2026.5+ plugin collection**.
 ## Usage notes / 使用说明
 
 - 所有独立标志为 `512 × 512` 画布，四周至少保留约 `72 px` 安全区。
-- Grid Stack 采用圆角等轴测楼板，顶部为实心 Teal，无核心筒开孔；整体高度已压缩。深色与单色版本使用同一套几何，可直接替换使用。
+- Grid Stack 采用圆角等轴测楼板，顶部为实心 Teal，无核心筒开孔；整体高度已压缩。顶部无边线、下方两层有描边，因此中层与底层整体上移 10px 补偿描边外扩，使三条可见间距一致。深色与单色版本使用同一套几何，可直接替换使用。
 - 其余标志的主线条使用 `currentColor`，嵌入 HTML 时可通过 CSS `color` 切换深浅；青色强调固定为 `#14B8A6`。
 - `app-icon-grid-stack.svg` 与 `app-icon.svg` 已包含深色圆角底板，可直接导出 512 / 256 / 128 px PNG。
 - `bulico-lockup.svg` 的文字使用系统无衬线字体（Segoe UI / Inter / Helvetica / Arial）；正式印刷或长期使用前建议转为轮廓。
