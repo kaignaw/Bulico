@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="title">
+  <title id="title">Category filter</title>
+  <rect x="1" y="1" width="30" height="30" rx="7" fill="#0B1727"/>
+  <rect x="5" y="5" width="22" height="22" rx="4" fill="none" stroke="#14B8A6" stroke-width="2.2"/>
+  <g fill="none" stroke="#F8FAFC" stroke-width="1.8" stroke-linejoin="round">
+    <circle cx="16" cy="9.5" r="2.8"/>
+    <rect x="13" y="14" width="6" height="6" rx="1.2"/>
+    <path d="M16 25.5L11 20H21Z"/>
+  </g>
+</svg>

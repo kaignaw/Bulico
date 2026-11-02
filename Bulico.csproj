@@ -27,28 +27,28 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\icon_gridwall_32.png" />
-    <EmbeddedResource Include="Resources\icon_gridwall_16.png" />
-    <EmbeddedResource Include="Resources\icon_beam_32.png" />
-    <EmbeddedResource Include="Resources\icon_beam_16.png" />
-    <EmbeddedResource Include="Resources\icon_floor_32.png" />
-    <EmbeddedResource Include="Resources\icon_floor_16.png" />
-    <EmbeddedResource Include="Resources\icon_filter_32.png" />
-    <EmbeddedResource Include="Resources\icon_filter_16.png" />
-    <EmbeddedResource Include="Resources\icon_doorwin_32.png" />
-    <EmbeddedResource Include="Resources\icon_doorwin_16.png" />
-    <EmbeddedResource Include="Resources\icon_mullion_32.png" />
-    <EmbeddedResource Include="Resources\icon_mullion_16.png" />
-    <EmbeddedResource Include="Resources\icon_category_32.png" />
-    <EmbeddedResource Include="Resources\icon_category_16.png" />
-    <EmbeddedResource Include="Resources\icon_fine_32.png" />
-    <EmbeddedResource Include="Resources\icon_fine_16.png" />
-    <EmbeddedResource Include="Resources\icon_about_32.png" />
-    <EmbeddedResource Include="Resources\icon_about_16.png" />
-    <EmbeddedResource Include="Resources\icon_roomfloor_32.png" />
-    <EmbeddedResource Include="Resources\icon_roomfloor_16.png" />
-    <EmbeddedResource Include="Resources\icon_elevgrid_32.png" />
-    <EmbeddedResource Include="Resources\icon_elevgrid_16.png" />
+    <EmbeddedResource Include="Resources\Icons\grid_wall_32.png" />
+    <EmbeddedResource Include="Resources\Icons\grid_wall_16.png" />
+    <EmbeddedResource Include="Resources\Icons\wall_beam_32.png" />
+    <EmbeddedResource Include="Resources\Icons\wall_beam_16.png" />
+    <EmbeddedResource Include="Resources\Icons\wall_beam_floor_32.png" />
+    <EmbeddedResource Include="Resources\Icons\wall_beam_floor_16.png" />
+    <EmbeddedResource Include="Resources\Icons\room_floor_32.png" />
+    <EmbeddedResource Include="Resources\Icons\room_floor_16.png" />
+    <EmbeddedResource Include="Resources\Icons\elevation_grid_32.png" />
+    <EmbeddedResource Include="Resources\Icons\elevation_grid_16.png" />
+    <EmbeddedResource Include="Resources\Icons\mullion_32.png" />
+    <EmbeddedResource Include="Resources\Icons\mullion_16.png" />
+    <EmbeddedResource Include="Resources\Icons\door_window_mark_32.png" />
+    <EmbeddedResource Include="Resources\Icons\door_window_mark_16.png" />
+    <EmbeddedResource Include="Resources\Icons\same_type_32.png" />
+    <EmbeddedResource Include="Resources\Icons\same_type_16.png" />
+    <EmbeddedResource Include="Resources\Icons\category_filter_32.png" />
+    <EmbeddedResource Include="Resources\Icons\category_filter_16.png" />
+    <EmbeddedResource Include="Resources\Icons\fine_filter_32.png" />
+    <EmbeddedResource Include="Resources\Icons\fine_filter_16.png" />
+    <EmbeddedResource Include="Resources\Icons\about_32.png" />
+    <EmbeddedResource Include="Resources\Icons\about_16.png" />
   </ItemGroup>
 
 </Project>

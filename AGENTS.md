@@ -18,15 +18,31 @@ dotnet build -c Release
 - `App.cs` is the `IExternalApplication` entrypoint; it creates the ribbon panel and registers every button.
 - `Commands/` holds `IExternalCommand` implementations, `UI/` holds WPF windows, `Utils/` holds shared helpers (`RegionFinder`, filters, `ProgressWindow`).
 - All code uses the flat `namespace Bulico`, regardless of folder.
-- SDK-style default globbing is enabled, so new `.cs` and `.xaml` files are picked up automatically. **Icons are the exception:** every 32/16 px PNG must have its own `<EmbeddedResource>` entry in `Bulico.csproj`. Resource names are `Bulico.Resources.icon_*.png`.
+- SDK-style default globbing is enabled, so new `.cs` and `.xaml` files are picked up automatically.
+- `Resources/Icons/` contains the command icon system: SVG sources in `src/`, generated 32/16 px PNGs, `generate-icons.mjs`, and a `preview.html`. PNGs must be listed explicitly as `<EmbeddedResource>` in `Bulico.csproj`; resource names are `Bulico.Resources.Icons.<name>_<size>.png`.
+
+## Command icons
+
+- Visual system: 32 × 32 canvas, dark Ink tile `#0B1727` (30 × 30, `rx=7`), white line art `#F8FAFC`, Teal accent `#14B8A6`.
+- Edit SVGs in `Resources/Icons/src/`; never hand-edit the generated PNGs.
+- Regenerate both sizes with:
+
+```bash
+cd Resources/Icons
+npm install
+npm run build
+```
+
+- Preview the set at `Resources/Icons/preview.html`.
+- Resource names follow `Bulico.Resources.Icons.<name>_<size>.png`; `App.cs` builds them through its `Icon(name, size)` helper.
 
 ## Adding or changing a command
 
 Keep these in sync — missing any one produces a half-working feature:
 
 1. Implement the command in `Commands/` with `[Transaction(TransactionMode.Manual)]`.
-2. Register the button in `App.OnStartup` (`AddPushButton`), including an icon pair.
-3. Add 32/16 px icons under `Resources/` and both `EmbeddedResource` entries in `Bulico.csproj`.
+2. Register the button in `App.OnStartup` (`AddPushButton`) with an icon pair from `Icon("<name>", 32/16)`.
+3. Add the SVG source under `Resources/Icons/src/`, run `npm run build` in `Resources/Icons`, and add both generated PNGs as `<EmbeddedResource>` entries in `Bulico.csproj`.
 4. Update the feature table and project tree in `README.md`, and the feature list in `Commands/AboutCommand.cs`.
 
 ## Revit 2026 API notes

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="title">
+  <title id="title">Fine filter</title>
+  <rect x="1" y="1" width="30" height="30" rx="7" fill="#0B1727"/>
+  <g fill="none" stroke="#F8FAFC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 10V14M16 14H9V18M16 14H23V18M9 21V23.5"/>
+  </g>
+  <circle cx="16" cy="8" r="2.6" fill="#F8FAFC"/>
+  <circle cx="9" cy="19.5" r="2" fill="none" stroke="#F8FAFC" stroke-width="1.6"/>
+  <circle cx="23" cy="19.5" r="2" fill="none" stroke="#F8FAFC" stroke-width="1.6"/>
+  <circle cx="9" cy="26" r="2.4" fill="#14B8A6"/>
+</svg>

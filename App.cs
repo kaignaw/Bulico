@@ -13,70 +13,75 @@ namespace Bulico
             AddPushButton(panel, "GridWallGenerator", "框轴生墙",
                 typeof(GridWallCommand).FullName,
                 "从框选的轴网交点生成墙体",
-                "Bulico.Resources.icon_gridwall_32.png",
-                "Bulico.Resources.icon_gridwall_16.png");
+                Icon("grid_wall", 32),
+                Icon("grid_wall", 16));
 
             AddPushButton(panel, "WallBeamGenerator", "框墙生梁",
                 typeof(BeamCommand).FullName,
                 "在选中的墙体顶部生成结构梁",
-                "Bulico.Resources.icon_beam_32.png",
-                "Bulico.Resources.icon_beam_16.png");
+                Icon("wall_beam", 32),
+                Icon("wall_beam", 16));
 
             AddPushButton(panel, "WallBeamFloor", "墙梁建板",
                 typeof(WallBeamFloorCommand).FullName,
                 "在围合区域内批量创建楼板",
-                "Bulico.Resources.icon_floor_32.png",
-                "Bulico.Resources.icon_floor_16.png");
+                Icon("wall_beam_floor", 32),
+                Icon("wall_beam_floor", 16));
 
             AddPushButton(panel, "RoomFloor", "房间建板",
                 typeof(RoomFloorCommand).FullName,
                 "根据房间轮廓批量创建楼板",
-                "Bulico.Resources.icon_roomfloor_32.png",
-                "Bulico.Resources.icon_roomfloor_16.png");
+                Icon("room_floor", 32),
+                Icon("room_floor", 16));
 
             AddPushButton(panel, "ElevationGridMark", "立面轴网标注",
                 typeof(ElevationGridMarkCommand).FullName,
                 "在立面/剖面视图中为框选轴网批量添加尺寸标注",
-                "Bulico.Resources.icon_elevgrid_32.png",
-                "Bulico.Resources.icon_elevgrid_16.png");
+                Icon("elevation_grid", 32),
+                Icon("elevation_grid", 16));
 
             AddPushButton(panel, "OneKeyHorizontalMullion", "一键横挺",
                 typeof(MullionCommand).FullName,
                 "在幕墙上批量生成横向网格线",
-                "Bulico.Resources.icon_mullion_32.png",
-                "Bulico.Resources.icon_mullion_16.png");
+                Icon("mullion", 32),
+                Icon("mullion", 16));
 
             AddPushButton(panel, "DoorWindowMark", "一键门窗类型标记",
                 typeof(DoorWindowMarkCommand).FullName,
                 "将项目中所有门窗的类型名称写入类型标记",
-                "Bulico.Resources.icon_doorwin_32.png",
-                "Bulico.Resources.icon_doorwin_16.png");
+                Icon("door_window_mark", 32),
+                Icon("door_window_mark", 16));
 
             AddPushButton(panel, "SameTypeFilter", "同型过滤",
                 typeof(SameTypeCommand).FullName,
                 "框选范围内仅保留与预选构件同类型的构件",
-                "Bulico.Resources.icon_filter_32.png",
-                "Bulico.Resources.icon_filter_16.png");
+                Icon("same_type", 32),
+                Icon("same_type", 16));
 
             AddPushButton(panel, "CategoryFilter", "类别过滤",
                 typeof(CategoryFilterCommand).FullName,
                 "框选范围内仅保留与预选构件同类别的构件",
-                "Bulico.Resources.icon_category_32.png",
-                "Bulico.Resources.icon_category_16.png");
+                Icon("category_filter", 32),
+                Icon("category_filter", 16));
 
             AddPushButton(panel, "FineFilter", "精细过滤",
                 typeof(FineFilterCommand).FullName,
                 "通过类型树形结构精确筛选所需构件",
-                "Bulico.Resources.icon_fine_32.png",
-                "Bulico.Resources.icon_fine_16.png");
+                Icon("fine_filter", 32),
+                Icon("fine_filter", 16));
 
             AddPushButton(panel, "About", "关于",
                 typeof(AboutCommand).FullName,
                 "查看插件版本与更新信息",
-                "Bulico.Resources.icon_about_32.png",
-                "Bulico.Resources.icon_about_16.png");
+                Icon("about", 32),
+                Icon("about", 16));
 
             return Result.Succeeded;
+        }
+
+        private static string Icon(string name, int size)
+        {
+            return $"Bulico.Resources.Icons.{name}_{size}.png";
         }
 
         private void AddPushButton(RibbonPanel panel, string internalName,

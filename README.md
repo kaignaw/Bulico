@@ -92,8 +92,12 @@ Bulico/
 │   ├── MullionWindow.xaml/.cs
 │   └── WallTypeSelector.xaml/.cs
 ├── Utils/                       # Utility classes
-├── Resources/                   # Icon resources (embedded)
-│   └── icon_*.png
+├── Resources/
+│   └── Icons/                   # Command icon system
+│       ├── src/                 # 32×32 SVG sources
+│       ├── *_32.png / *_16.png  # Generated Revit icons
+│       ├── generate-icons.mjs   # SVG → PNG generator
+│       └── preview.html
 └── Properties/
     └── AssemblyInfo.cs          # Version info / 版本号
 ```
@@ -101,6 +105,8 @@ Bulico/
 ## Brand / 品牌标志
 
 The project's Grid Stack brand assets are in [`assets/brand/`](assets/brand/). Open [`assets/brand/preview.html`](assets/brand/preview.html) for a visual overview. The refined **Grid Stack** mark is the current preferred direction.
+
+Command icons follow the same Ink + Teal visual system and live in [`Resources/Icons/`](Resources/Icons/). Their SVG sources and 32/16 px PNGs are generated together; see [`Resources/Icons/README.md`](Resources/Icons/README.md).
 
 ## License / 许可证
 
