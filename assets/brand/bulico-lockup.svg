@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -22 800 320" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 2 800 240" role="img" aria-labelledby="title">
   <title id="title">Bulico Grid Stack logo lockup</title>
-  <g transform="translate(48 20) scale(0.55)">
+  <g transform="translate(48 -16) scale(0.55)">
     <g fill="none" stroke="#0B1727" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
       <path d="M137 239 231 213Q256 206 281 213L375 239Q400 246 375 253L281 279Q256 286 231 279L137 253Q112 246 137 239Z"/>
       <path d="M137 339 231 313Q256 306 281 313L375 339Q400 346 375 353L281 379Q256 386 231 379L137 353Q112 346 137 339Z" stroke-opacity=".5"/>
@@ -9,6 +9,5 @@
   </g>
   <g color="#0B1727" font-family="'Segoe UI', Inter, Helvetica, Arial, sans-serif">
     <text x="320" y="170" font-size="132" font-weight="700" letter-spacing="-5" fill="currentColor">Bulico</text>
-    <text x="324" y="238" font-size="34" font-weight="600" letter-spacing="9" fill="#14B8A6">REVIT 2026.5+</text>
   </g>
 </svg>
