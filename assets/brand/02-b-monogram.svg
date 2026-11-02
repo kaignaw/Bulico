@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">Bulico B monogram</title>
-  <g color="#0B1727" fill="none" stroke="currentColor" stroke-width="30" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M176 104v304"/>
-    <path d="M176 104h128a76 76 0 0 1 0 152H176"/>
-    <path d="M176 256h152a76 76 0 0 1 0 152H176"/>
-  </g>
-  <rect x="232" y="152" width="48" height="48" rx="10" fill="#14B8A6"/>
-</svg>
