@@ -1,0 +1,103 @@
+<Window x:Class="Bulico.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bulico - 关于"
+        Width="500"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="White"
+        FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="24,28,24,30"
+              HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Grid Stack 标志：顶部 Teal 实心楼板、中层 Ink 线稿、底层弱化线稿 -->
+            <Viewbox Grid.Row="0" Grid.Column="0"
+                     Width="150" Height="142"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center">
+                <Canvas Width="308" Height="290">
+                    <Canvas Canvas.Left="-102" Canvas.Top="-106"
+                            Width="512" Height="512">
+                        <Path Data="M137,339 L231,313 Q256,306 281,313 L375,339 Q400,346 375,353 L281,379 Q256,386 231,379 L137,353 Q112,346 137,339 Z"
+                              Stroke="#0B1727" Opacity="0.45" StrokeThickness="20"
+                              StrokeLineJoin="Round"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"/>
+                        <Path Data="M137,239 L231,213 Q256,206 281,213 L375,239 Q400,246 375,253 L281,279 Q256,286 231,279 L137,253 Q112,246 137,239 Z"
+                              Stroke="#0B1727" StrokeThickness="20"
+                              StrokeLineJoin="Round"
+                              StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round"/>
+                        <Path Data="M137,149 L231,123 Q256,116 281,123 L375,149 Q400,156 375,163 L281,189 Q256,196 231,189 L137,163 Q112,156 137,149 Z"
+                              Fill="#14B8A6"/>
+                    </Canvas>
+                </Canvas>
+            </Viewbox>
+
+            <StackPanel Grid.Row="0" Grid.Column="1"
+                        Margin="24,0,0,0"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left">
+                <TextBlock Text="Bulico"
+                           FontSize="72"
+                           FontWeight="Black"
+                           Foreground="#0B1727"
+                           Margin="0,-8,0,0"/>
+                <TextBlock x:Name="VersionText"
+                           Text="V1.3.00"
+                           FontSize="34"
+                           FontWeight="Bold"
+                           Foreground="#14B8A6"
+                           HorizontalAlignment="Right"
+                           Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                        Margin="0,26,0,0">
+                <TextBlock x:Name="ProductText"
+                           Text="Bulico for Revit 2026.5+&#10;V1.3.00"
+                           FontSize="13"
+                           LineHeight="19"
+                           Foreground="#0B1727"/>
+                <TextBlock Text="The MIT License (MIT)"
+                           FontSize="13"
+                           Foreground="#0B1727"
+                           Margin="0,22,0,0"/>
+                <TextBlock Text="Copyright © 2026 Kaignaw"
+                           FontSize="13"
+                           Foreground="#0B1727"
+                           Margin="0,2,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1"
+                Background="#F3F3F3"
+                BorderBrush="#DCDCDC"
+                BorderThickness="0,1,0,0"
+                Padding="12,10">
+            <Button Content="关闭(C)"
+                    Width="88" Height="28"
+                    HorizontalAlignment="Right"
+                    IsCancel="True"
+                    Click="CloseButton_Click"/>
+        </Border>
+    </Grid>
+</Window>

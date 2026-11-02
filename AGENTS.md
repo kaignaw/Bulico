@@ -29,7 +29,7 @@ dotnet build -c Release
 1. 在 `Commands/` 实现命令，标注 `[Transaction(TransactionMode.Manual)]`。
 2. 在 `App.OnStartup` 中注册按钮，图标用 `Icon("<name>", 32)` 与 `Icon("<name>", 16)`。
 3. 在 `Brand/Icons/src/` 增加同名 SVG，重新生成 PNG，并在 `Bulico.csproj` 添加两条 `<EmbeddedResource>`。
-4. 同步 `README.md` 的功能表/项目树，以及 `Commands/AboutCommand.cs` 里的功能列表。
+4. 同步 `README.md` 的功能表/项目树；关于界面的版本号由 `UI/AboutWindow.xaml.cs` 从 `AssemblyInfo` 读取，不再单独维护文字。
 5. 用户可见文案（TaskDialog、窗口、Ribbon 提示）一律用中文。
 6. 命令入口统一用 `CommandGuard.TryGetDocument` 判空；异常用 `ErrorReporter` 写本地日志（`%LOCALAPPDATA%\Bulico\logs\error.log`），不要向用户直接显示 `ex.Message`。输入上限集中在 `InputLimits`；批量创建失败必须整组回滚。
 
