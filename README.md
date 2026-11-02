@@ -60,6 +60,12 @@
 
 Bulico 是一套面向正向设计的 Revit 插件集合，目标是把高频、重复的建模与注释操作压缩成一次点击。所有命令共用同一套交互习惯和视觉规范，装好之后，功能区会出现独立的 **Bulico** 选项卡，按用途分为 **建模**、**注释**、**效率**、**其他** 四组。
 
+<p align="center">
+  <img src="images/screenshot.png" alt="Bulico 在 Revit 中的选项卡与关于窗口" width="860">
+  <br>
+  <sub>Bulico 选项卡与“Bulico - 关于”窗口</sub>
+</p>
+
 <a id="why-bulico"></a>
 ### 为什么选择 Bulico
 
@@ -181,6 +187,7 @@ Bulico/
 ├── App.cs                       # IExternalApplication 入口，注册 Ribbon 面板与按钮
 ├── Bulico.csproj                # .NET 10 / x64 / WPF 项目文件
 ├── Bulico.addin                 # Revit 部署清单
+├── images/                      # README 截图
 ├── Commands/                    # 各功能命令（IExternalCommand）
 │   ├── AboutCommand.cs
 │   ├── BeamCommand.cs
