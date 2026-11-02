@@ -19,22 +19,31 @@ dotnet build -c Release
 - `Commands/` holds `IExternalCommand` implementations, `UI/` holds WPF windows, `Utils/` holds shared helpers (`RegionFinder`, filters, `ProgressWindow`).
 - All code uses the flat `namespace Bulico`, regardless of folder.
 - SDK-style default globbing is enabled, so new `.cs` and `.xaml` files are picked up automatically.
-- `Resources/Icons/` contains the command icon system: SVG sources in `src/`, generated 32/16 px PNGs, `generate-icons.mjs`, and a `preview.html`. PNGs must be listed explicitly as `<EmbeddedResource>` in `Bulico.csproj`; resource names are `Bulico.Resources.Icons.<name>_<size>.png`.
+- `Brand/Icons/` contains the command icon system: SVG sources in `src/`, generated 32/16 px PNGs, `generate-icons.mjs`, and a `preview.html`. PNGs must be listed explicitly as `<EmbeddedResource>` in `Bulico.csproj`; resource names are `Bulico.Brand.Icons.<name>_<size>.png`.
+
+## Visual identity
+
+All visual assets live in `Brand/`; read `Brand/README.md` before adding or changing logo/icon work.
+
+- Grid Stack: three rounded isometric floor plates; top solid Teal, middle full Ink, bottom 50% Ink; no core hole. Keep left/right symmetry and visually equal gaps — the logo compensates for the top plate having no stroke.
+- Palette: Ink `#0B1727`, Teal `#14B8A6`, Paper `#F8FAFC`. Do not reintroduce the old multicolor icon tiles.
+- Command icons: 32×32 dark Ink tile, white line art, one Teal accent; 4 px safe area; generated to 32/16 px from SVG.
+- Use the supplied dark/mono logo variants for dark backgrounds; keep the lockup free of version text.
 
 ## Command icons
 
 - Visual system: 32 × 32 canvas, dark Ink tile `#0B1727` (30 × 30, `rx=7`), white line art `#F8FAFC`, Teal accent `#14B8A6`.
-- Edit SVGs in `Resources/Icons/src/`; never hand-edit the generated PNGs.
+- Edit SVGs in `Brand/Icons/src/`; never hand-edit the generated PNGs.
 - Regenerate both sizes with:
 
 ```bash
-cd Resources/Icons
+cd Brand/Icons
 npm install
 npm run build
 ```
 
-- Preview the set at `Resources/Icons/preview.html`.
-- Resource names follow `Bulico.Resources.Icons.<name>_<size>.png`; `App.cs` builds them through its `Icon(name, size)` helper.
+- Preview the set at `Brand/Icons/preview.html`.
+- Resource names follow `Bulico.Brand.Icons.<name>_<size>.png`; `App.cs` builds them through its `Icon(name, size)` helper.
 
 ## Adding or changing a command
 
@@ -42,7 +51,7 @@ Keep these in sync — missing any one produces a half-working feature:
 
 1. Implement the command in `Commands/` with `[Transaction(TransactionMode.Manual)]`.
 2. Register the button in `App.OnStartup` (`AddPushButton`) with an icon pair from `Icon("<name>", 32/16)`.
-3. Add the SVG source under `Resources/Icons/src/`, run `npm run build` in `Resources/Icons`, and add both generated PNGs as `<EmbeddedResource>` entries in `Bulico.csproj`.
+3. Add the SVG source under `Brand/Icons/src/`, run `npm run build` in `Brand/Icons`, and add both generated PNGs as `<EmbeddedResource>` entries in `Bulico.csproj`.
 4. Update the feature table and project tree in `README.md`, and the feature list in `Commands/AboutCommand.cs`.
 
 ## Revit 2026 API notes

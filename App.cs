@@ -81,7 +81,7 @@ namespace Bulico
 
         private static string Icon(string name, int size)
         {
-            return $"Bulico.Resources.Icons.{name}_{size}.png";
+            return $"Bulico.Brand.Icons.{name}_{size}.png";
         }
 
         private void AddPushButton(RibbonPanel panel, string internalName,

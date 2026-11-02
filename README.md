@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/bulico-lockup-dark.svg">
-    <img src="assets/brand/bulico-lockup.svg" alt="Bulico — plugin collection" width="640">
+    <source media="(prefers-color-scheme: dark)" srcset="Brand/Logo/bulico-lockup-dark.svg">
+    <img src="Brand/Logo/bulico-lockup.svg" alt="Bulico — plugin collection" width="640">
   </picture>
 </p>
 
@@ -92,7 +92,9 @@ Bulico/
 │   ├── MullionWindow.xaml/.cs
 │   └── WallTypeSelector.xaml/.cs
 ├── Utils/                       # Utility classes
-├── Resources/
+├── Brand/                       # Visual identity system
+│   ├── README.md                # Design system + rationale
+│   ├── Logo/                    # Grid Stack logo assets
 │   └── Icons/                   # Command icon system
 │       ├── src/                 # 32×32 SVG sources
 │       ├── *_32.png / *_16.png  # Generated Revit icons
@@ -102,11 +104,17 @@ Bulico/
     └── AssemblyInfo.cs          # Version info / 版本号
 ```
 
-## Brand / 品牌标志
+## Visual Identity / 视觉识别
 
-The project's Grid Stack brand assets are in [`assets/brand/`](assets/brand/). Open [`assets/brand/preview.html`](assets/brand/preview.html) for a visual overview. The refined **Grid Stack** mark is the current preferred direction.
+所有视觉资产集中在 [`Brand/`](Brand/)，完整设计规则见 [`Brand/README.md`](Brand/README.md)。
 
-Command icons follow the same Ink + Teal visual system and live in [`Resources/Icons/`](Resources/Icons/). Their SVG sources and 32/16 px PNGs are generated together; see [`Resources/Icons/README.md`](Resources/Icons/README.md).
+- **Grid Stack 标志**：三层圆角等轴测楼板；顶部实心 Teal，中层完整 Ink，底层弱化；无核心筒开孔。
+- **色彩**：Ink `#0B1727`、Teal `#14B8A6`、Paper `#F8FAFC`。
+- **功能图标**：32×32 深色圆角底板 + 白色线稿 + Teal 强调，保证浅色 / 深色 Ribbon 都可读。
+- **延展规则**：新增图标必须沿用同一底板、线宽、安全区与配色，并从 SVG 源生成 32/16 px PNG，禁止直接手改 PNG。
+
+Logo 资产：[`Brand/Logo/`](Brand/Logo/) · 预览：[`Brand/Logo/preview.html`](Brand/Logo/preview.html)  
+功能图标：[`Brand/Icons/`](Brand/Icons/) · 预览：[`Brand/Icons/preview.html`](Brand/Icons/preview.html)
 
 ## License / 许可证
 
