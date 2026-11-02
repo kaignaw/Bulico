@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Bulico is a **Revit 2026.5+** add-in (.NET 10, x64, WPF). Revit 2026.0–2026.4 use .NET 8 and are not targeted by this branch. There is no test project, CI, or lint/format config; compiling is the only automated verification.
+Bulico is a **Revit 2026.5+** add-in (.NET 10, x64, WPF). Revit 2026.0–2026.4 use .NET 8 and are not targeted by this mainline. There is no test project, CI, or lint/format config; compiling is the only automated verification.
 
 ## Build
 
